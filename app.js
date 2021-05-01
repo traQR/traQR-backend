@@ -72,15 +72,72 @@ const FacultySchema = new mongoose.Schema({
   ],
 });
 
+const DoubtSchema = new mongoose.Schema({
+  facultyID: String,
+  doubts: [
+    {
+      courseID: String,
+      doubt: String,
+    },
+  ],
+});
+
 const Student = mongoose.model("Student", StudentSchema);
 
 const Faculty = mongoose.model("Faculty", FacultySchema);
 
 const Course = mongoose.model("Course", CourseSchema);
 
+const Doubts = mongoose.model("Doubts", DoubtsSchema);
+
 app.get("/courses", function(req, res){
-    //Student.
-})
+  // Retrieveing fields from Student object
+  const studentCoursesTaken = Student.find({}, {coursesTaken: 1});
+  res.send(studentCoursesTaken);
+});
+
+app.get("/courses/:courseID", function(req,res){
+  // Retrieving fields from course object
+  const courseInfo = Course.find({}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1});
+  res.send(courseInfo);
+});
+
+app.post("/courses/:courseID/attendance", function(req,res){
+  const attendance = Course.find({}, {attendance: 1});
+  const attendanceHistory = attendance.historyOfAttendance;
+  
+  // // Calculating attendance percentage
+  // var tot = Object.size(attendanceHistory);
+  // var present = 0;
+  // for(var key in attendanceHistory){
+  //   if(JSON.parse(attendanceHistory).status == "Present"){
+  //     present++;
+  //   }
+  // }
+  // var attendancePercentage = (present/tot) * 100;
+
+  res.send(attendanceHistory);
+});
+
+app.get("/attendance", function(req,res){
+  const student = Student.find({}, {coursesTaken: 1}, );
+  // sai hella gae
+
+});
+
+app.get("/doubts", function(req,res){
+  const doubts = Doubts.find({}, {doubts: 1});
+  
+  res.send(doubts);
+});
+
+app.post("/doubts", function(req,res){
+  // facID should be substituted for the corresponding front-end variable
+  const doubts = Doubts.find({facultyID: req.params.facID}, {doubts: 1});
+  
+  res.send(doubts);
+});
+
 
 app.listen(process.env.PORT || 3000, function(req, res){
   console.log("Server started on the port");
