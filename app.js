@@ -22,6 +22,66 @@ app.post("/oauth", function(req, res){
   res.send(decryptedToken);
 })
 
+//DATABASE MODEL
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb://localhost:27017/TraQRdb", {useNewUrlParser: true, useUnifiedTopology: true});
+
+const courseSchema = new mongoose.Schema({
+    courseID: {
+      type: String,
+      required: [true, "There must be a course ID"]
+    }, 
+    courseName: String,
+    slot: String,
+    facultyID: String,
+    attendance: [
+      {
+        registrationNumber: String,
+        attendancePercentage: Number,
+        historyOfAttendance: [
+          {
+            attendanceDate: String,
+            status: String,
+          },
+        ],
+      },
+    ]
+});
+
+const StudentSchema = new mongoose.Schema({ 
+  registrationNumber: String,
+  studentName: String,
+  coursesTaken: [
+    {
+      courseID: String,
+      courseName: String,
+      slot: String,
+    },
+  ],
+})
+
+const FacultySchema = new mongoose.Schema({
+  facultyID: String,
+  facultyName: String,
+  coursesHandled: [
+    {
+      courseID: String,
+      courseName: String,
+    },
+  ],
+});
+
+const Student = mongoose.model("Student", StudentSchema);
+
+const Faculty = mongoose.model("Faculty", FacultySchema);
+
+const Course = mongoose.model("Course", CourseSchema);
+
+app.get("/courses", function(req, res){
+    //Student.
+})
+
 app.listen(process.env.PORT || 3000, function(req, res){
   console.log("Server started on the port");
 });
