@@ -106,7 +106,7 @@ app.post("/courses/:courseID/attendance", function(req,res){
   const attendance = Course.find({}, {attendance: 1});
   const attendanceHistory = attendance.historyOfAttendance;
   
-  // // Calculating attendance percentage
+  // //Calculating attendance percentage
   // var tot = Object.size(attendanceHistory);
   // var present = 0;
   // for(var key in attendanceHistory){
@@ -115,7 +115,7 @@ app.post("/courses/:courseID/attendance", function(req,res){
   //   }
   // }
   // var attendancePercentage = (present/tot) * 100;
-
+  // attendanceHistory.attendancePercentage
   res.send(attendanceHistory);
 });
 
@@ -133,12 +133,16 @@ app.get("/doubts", function(req,res){
 
 app.post("/doubts", function(req,res){
   // facID should be substituted for the corresponding front-end variable
-  const doubts = Doubts.find({facultyID: req.params.facID}, {doubts: 1});
+  const doubts = Doubts.find({facultyID: req.params.uID}, {doubts: 1});
   
   res.send(doubts);
 });
 
+let port = process.env.PORT;
+if(port == null || port == ""){
+  port = 3000
+}
 
-app.listen(process.env.PORT || 3000, function(req, res){
+app.listen(port, function(req, res){
   console.log("Server started on the port");
 });
