@@ -25,7 +25,7 @@ app.post("/oauth", function(req, res){
 //DATABASE MODEL
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost:27017/TraQRdb", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB", {useNewUrlParser: true, useUnifiedTopology: true});
 
 const courseSchema = new mongoose.Schema({
     courseID: {
