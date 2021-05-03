@@ -5,21 +5,21 @@ const express = require("express");
 
 const admin = require("firebase-admin");
 
-
 const app = express();
+
+app.use(express.json());
 
 app.use(express.urlencoded());
 
 var serviceAccount = require("./service_acc.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.applicationDefault()
 });
 
 app.post("/oauth", function(req, res){
   const idToken = req.body.jwt;
-  const decryptedToken = admin.verifyIdToken(idToken);
-  console.log("Sai has big tits: ", decryptedToken);
+  const decryptedToken = admin.auth().verifyIdToken(idToken);
 });
 
 // Easter egg
@@ -176,7 +176,7 @@ app.get("/doubts", function(req,res){
 
 app.post("/doubts", function(req,res){
   // facID should be substituted for the corresponding front-end variable
-  const doubts = Doubts.find({facultyID: req.params.uID}, {doubts: 1});
+  const doubts = Doubts.find({facultyID: req.body.facID}, {doubts: 1});
   
   res.send(doubts);
 });
