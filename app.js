@@ -17,7 +17,7 @@ admin.initializeApp({
 });
 
 app.post("/oauth", function(req, res){
-  const idToken = req.body.id;
+  const idToken = req.body.jwt;
   const decryptedToken = admin.verifyIdToken(idToken);
   console.log("Sai has big tits: ", decryptedToken);
 });
