@@ -10,7 +10,7 @@ const app = express();
 
 app.use(express.urlencoded());
 
-var serviceAccount = require("C:\Users\abhil\Documents\firebase_auth\traqr-4b1c8-firebase-adminsdk-h045g-e37a5ebc62.json");
+var serviceAccount = require("./service_acc.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -53,7 +53,7 @@ const courseSchema = new mongoose.Schema({
     ]
 });
 
-const StudentSchema = new mongoose.Schema({ 
+const studentSchema = new mongoose.Schema({ 
   registrationNumber: String,
   studentName: String,
   coursesTaken: [
@@ -65,7 +65,7 @@ const StudentSchema = new mongoose.Schema({
   ],
 })
 
-const FacultySchema = new mongoose.Schema({
+const facultySchema = new mongoose.Schema({
   facultyID: String,
   facultyName: String,
   coursesHandled: [
@@ -76,7 +76,7 @@ const FacultySchema = new mongoose.Schema({
   ],
 });
 
-const DoubtSchema = new mongoose.Schema({
+const doubtSchema = new mongoose.Schema({
   facultyID: String,
   doubts: [
     {
@@ -86,13 +86,13 @@ const DoubtSchema = new mongoose.Schema({
   ],
 });
 
-const Student = mongoose.model("Student", StudentSchema);
+const Student = mongoose.model("Student", studentSchema);
 
-const Faculty = mongoose.model("Faculty", FacultySchema);
+const Faculty = mongoose.model("Faculty", facultySchema);
 
-const Course = mongoose.model("Course", CourseSchema);
+const Course = mongoose.model("Course", courseSchema);
 
-const Doubts = mongoose.model("Doubts", DoubtsSchema);
+const Doubts = mongoose.model("Doubts", doubtSchema);
 
 app.get("/courses", function(req, res){
   // Retrieveing fields from Student object
