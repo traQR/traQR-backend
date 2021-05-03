@@ -22,6 +22,7 @@ app.post("/oauth", function(req, res){
   res.send(decryptedToken);
 });
 
+// Easter egg
 app.get("/traqr", function(req, res){
   res.send("sai gae");
 });
@@ -94,26 +95,39 @@ const Course = mongoose.model("Course", courseSchema);
 
 const Doubts = mongoose.model("Doubts", doubtSchema);
 
-app.get("/courses", function(req, res){
+app.post("/courses", function(req, res){
   // Retrieveing fields from Student object
-  const studentCoursesTaken = Student.find({}, {coursesTaken: 1});
+  var regNo = req.body.regNo;
+
+  const studentCoursesTaken = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
   res.send(studentCoursesTaken);
 });
 
-app.get("/courses/:courseID", function(req,res){
+app.post("/courses/:courseID", function(req,res){
   // Retrieving fields from course object
-  const courseInfo = Course.find({}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1});
+  var cID = req.body.courseID;
+
+  const courseInfo = Course.find({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1});
   res.send(courseInfo);
 });
 
 app.post("/courses/:courseID/attendance", function(req,res){
-  regNo = req.body.regNo;
-  var attendance = Course.find({registrationNumber: regNo}, {attendance: 1});
+  var regNo = req.body.regNo;
+  var cID = req.body.courseID;
+  var attendance = Course.find({courseID: cID}, {attendance: 1});
   
-  var attendanceList = {
-    "regno": attendance.attendancePercentage,
-    "attendanceHistory": attendance.historyOfAttendance
-  };
+  // Checks the array of objects in attendance for the requested regNo
+  // and stores those exact details in attendanceList which is then sent.
+  
+  for (var key in attendance) {
+    if (key.registrationNumber === regNo) {
+      var attendanceList = {
+        "attendancePercentage": key.attendancePercentage,
+        "attendanceHistory": key.historyOfAttendance
+      };
+    }
+  }
+
   // //Calculating attendance percentage
   // var tot = Object.size(attendanceHistory);
   // var present = 0;
@@ -124,12 +138,20 @@ app.post("/courses/:courseID/attendance", function(req,res){
   // }
   // var attendancePercentage = (present/tot) * 100;
   // attendanceHistory.attendancePercentage
+
   res.send(attendanceList);
 });
 
-app.get("/attendance", function(req,res){
-  const student = Student.find({}, {coursesTaken: 1}, );
+app.post("/attendance", function(req,res){
+  var regNo = req.body.regNo;
+  var percentageList = {};
+
+  var allCourses = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
   // sai hella gae
+  for(var key in allCourses) {
+
+  }
+
 
 });
 
