@@ -19,7 +19,7 @@ admin.initializeApp({
 app.post("/oauth", function(req, res){
   const idToken = req.body.id;
   const decryptedToken = admin.verifyIdToken(idToken);
-  res.send(decryptedToken);
+  console.log("Sai has big tits: ", decryptedToken);
 });
 
 // Easter egg
@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
     {
       courseID: String,
       courseName: String,
-      slot: String,
+      slot: String
     },
   ],
 })
@@ -144,14 +144,27 @@ app.post("/courses/:courseID/attendance", function(req,res){
 
 app.post("/attendance", function(req,res){
   var regNo = req.body.regNo;
-  var percentageList = {};
+  var percentageList = [];
 
   var allCourses = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
   // sai hella gae
   for(var key in allCourses) {
-
+    var cID = key.courseID;
+    var attendance = Course.find({courseID: cID},{attendance: 1})
+    for(var key1 in attendance){
+        //TODO: sais ass paining too much
+        if(key1.registrationNumber === regNo){
+          let attendanceSummary = {
+            "courseID": cID,
+            "courseName": key.courseName,
+            "attendancePercentage": key1.attendancePercentage
+          }
+          percentageList.push(attendanceSummary);
+        }
+    }
+    res.send(percentageList);
   }
-
+  
 
 });
 
