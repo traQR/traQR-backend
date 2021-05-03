@@ -107,9 +107,13 @@ app.get("/courses/:courseID", function(req,res){
 });
 
 app.post("/courses/:courseID/attendance", function(req,res){
-  const attendance = Course.find({}, {attendance: 1});
-  const attendanceHistory = attendance.historyOfAttendance;
+  regNo = req.body.regNo;
+  var attendance = Course.find({registrationNumber: regNo}, {attendance: 1});
   
+  var attendanceList = {
+    "regno": attendance.attendancePercentage,
+    "attendanceHistory": attendance.historyOfAttendance
+  };
   // //Calculating attendance percentage
   // var tot = Object.size(attendanceHistory);
   // var present = 0;
@@ -120,7 +124,7 @@ app.post("/courses/:courseID/attendance", function(req,res){
   // }
   // var attendancePercentage = (present/tot) * 100;
   // attendanceHistory.attendancePercentage
-  res.send(attendanceHistory);
+  res.send(attendanceList);
 });
 
 app.get("/attendance", function(req,res){
