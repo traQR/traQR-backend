@@ -14,13 +14,17 @@ var serviceAccount = require("C:\Users\abhil\Documents\firebase_auth\traqr-4b1c8
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
-});;
+});
 
 app.post("/oauth", function(req, res){
   const idToken = req.body.id;
   const decryptedToken = admin.verifyIdToken(idToken);
   res.send(decryptedToken);
-})
+});
+
+app.get("/traqr", function(req, res){
+  res.send("sai gae");
+});
 
 //DATABASE MODEL
 const mongoose = require("mongoose");
