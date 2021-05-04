@@ -226,15 +226,25 @@ app.get("/doubts", function (req, res) {
 
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
-  const doubts = Doubts.find({ facultyID: req.body.facID }, { doubts: 1 });
-
-  res.send(doubts);
+  Doubts.findOne({ facultyID: req.body.facID }, { doubts: 1 }, function(err, doubts){
+    if(err){
+      res.send(err);
+    }
+    else{
+      res.send(doubts);
+    }
+  });
 });
 
 app.post("/faculty", function (req, res) {
-  const courses = Faculty.find({ facultyID: req.body.facID }, { coursesHandeled: 1 });
-
-  res.send(courses);
+  Faculty.findOne({ facultyID: req.body.facID }, { coursesHandled: 1 }, function(err, teacherCourses){
+    if(err){
+      res.send(err);
+    }
+    else{
+      res.send(teacherCourses);
+    }
+  });
 })
 
 // Returns attendance statistics of the students based on particular courseID
