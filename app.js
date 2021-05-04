@@ -182,7 +182,7 @@ app.post("/doubts", function(req,res){
 });
 
 app.post("/faculty", function(req, res){
-  const courses = Faculty.find({facultyID: req.body.facID}, {coursesTaken: 1});
+  const courses = Faculty.find({facultyID: req.body.facID}, {coursesHandeled: 1});
 
   res.send(courses);
 })
