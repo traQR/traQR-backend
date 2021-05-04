@@ -26,38 +26,38 @@ admin.initializeApp({
 // });
 
 // Easter egg
-app.get("/traqr", function(req, res){
+app.get("/traqr", function (req, res) {
   res.send("sai gae");
 });
 
 //DATABASE MODEL
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB", { useNewUrlParser: true, useUnifiedTopology: true });
 
 const courseSchema = new mongoose.Schema({
-    courseID: {
-      type: String,
-      required: [true, "There must be a course ID"]
-    }, 
-    courseName: String,
-    slot: String,
-    facultyID: String,
-    attendance: [
-      {
-        registrationNumber: String,
-        attendancePercentage: Number,
-        historyOfAttendance: [
-          {
-            attendanceDate: String,
-            status: String,
-          },
-        ],
-      },
-    ]
+  courseID: {
+    type: String,
+    required: [true, "There must be a course ID"]
+  },
+  courseName: String,
+  slot: String,
+  facultyID: String,
+  attendance: [
+    {
+      registrationNumber: String,
+      attendancePercentage: Number,
+      historyOfAttendance: [
+        {
+          attendanceDate: String,
+          status: String,
+        },
+      ],
+    },
+  ]
 });
 
-const studentSchema = new mongoose.Schema({ 
+const studentSchema = new mongoose.Schema({
   registrationNumber: String,
   studentName: String,
   coursesTaken: [
@@ -100,9 +100,9 @@ const Doubts = mongoose.model("Doubts", doubtSchema);
 
 // ***  ROUTES *** //
 
-app.post("/newUser", function(req, res){
-  let {isStudent, studentName, regNo, facID, facultyName} = req.body;
-  if(isStudent){
+app.post("/newUser", function (req, res) {
+  let { isStudent, studentName, regNo, facID, facultyName } = req.body;
+  if (isStudent) {
     const user = new Student({
       registrationNumber: regNo,
       studentName: studentName,
@@ -110,7 +110,7 @@ app.post("/newUser", function(req, res){
     })
     user.save();
   }
-  else{
+  else {
     const user = new Faculty({
       facultyID: facID,
       facultyName: facultyName,
@@ -120,50 +120,50 @@ app.post("/newUser", function(req, res){
   }
 })
 
-app.post("/courses", function(req, res){
+app.post("/courses", function (req, res) {
   // Retrieveing fields from Student object
   var regNo = req.body.regNo;
-  Student.findOne({registrationNumber: regNo}, {coursesTaken: 1}, function(err, studentCoursesTaken){
-    if(err){
+  Student.findOne({ registrationNumber: regNo }, { coursesTaken: 1 }, function (err, studentCoursesTaken) {
+    if (err) {
       res.send(err);
     }
-    else{
+    else {
       res.send(studentCoursesTaken);
     }
   });
 });
 
-app.post("/courses/courseID", function(req,res){
+app.post("/courses/courseID", function (req, res) {
   // Retrieving fields from course object
   var cID = req.body.courseID;
 
-  Course.findOne({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1}, function(err, courseInfo){
-    if(err){
+  Course.findOne({ courseID: cID }, { courseID: 1, courseName: 1, slot: 1, facultyID: 1 }, function (err, courseInfo) {
+    if (err) {
       res.send(err)
     }
-    else{
+    else {
       res.send(courseInfo);
     }
   });
 });
 
-app.post("/courses/courseID/attendance", function(req,res){
+app.post("/courses/courseID/attendance", function (req, res) {
   // Checks the array of objects in attendance for the requested regNo
   // and stores those exact details in attendanceList which is then sent.
-  
+
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
-  
-  Course.findOne({courseID: cID}, {attendance: 1}, function(err, tempAttendance){
-    if(err){
+
+  Course.findOne({ courseID: cID }, { attendance: 1 }, function (err, tempAttendance) {
+    if (err) {
       res.send(err);
     }
-    else{
+    else {
       var i;
       var len = tempAttendance.attendance.length;
 
-      for(i=0; i<len; i++){
-        if(tempAttendance.attendance[i].registrationNumber === regNo){
+      for (i = 0; i < len; i++) {
+        if (tempAttendance.attendance[i].registrationNumber === regNo) {
           res.send(tempAttendance.attendance[i]);
         }
       }
@@ -182,56 +182,69 @@ app.post("/courses/courseID/attendance", function(req,res){
   // attendanceHistory.attendancePercentage
 });
 
-app.post("/attendance", function(req,res){
+app.post("/attendance", function (req, res) {
   var regNo = req.body.regNo;
   var percentageList = [];
 
-  var allCourses = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
-  for(var key in allCourses) {
-    var cID = key.courseID;
-    var attendance = Course.find({courseID: cID},{attendance: 1})
-    for(var key1 in attendance){
-      if(key1.registrationNumber === regNo){
-        let attendanceSummary = {
-          "courseID": cID,
-          "courseName": key.courseName,
-          "attendancePercentage": key1.attendancePercentage
-        }
-        percentageList.push(attendanceSummary);
+  Student.findOne({ registrationNumber: regNo }, { coursesTaken: 1 }, function (err, studentCourses) {
+    if (err) {
+      res.send(err);
+    }
+    else {
+      var len = studentCourses.coursesTaken.length;
+      for (var i = 0; i < len; i++) {
+        Course.findOne({ courseID: studentCourses.coursesTaken[i].courseID }, { courseName: 1, slot: 1, attendance: 1 }, function (err, attendanceSummary) {
+          if (err) {
+            res.send(err);
+          }
+          else {
+            var len1 = attendanceSummary.attendance.length;
+            for (var j = 0; j < len1; j++) {
+              if (attendanceSummary.attendance[j].registrationNumber === regNo) {
+                let obj = {
+                  "courseName": attendanceSummary.courseName,
+                  "slot": attendanceSummary.slot,
+                  "attendancePercent": attendanceSummary.attendance[j].attendancePercentage
+                }
+                percentageList.push(obj);
+              }
+            }
+            res.send(percentageList);
+          }
+        })
       }
     }
-
-    res.send(percentageList);
-  }
+  });
+  
 });
 
-app.get("/doubts", function(req,res){
-  const doubts = Doubts.find({}, {doubts: 1});
-  
+app.get("/doubts", function (req, res) {
+  const doubts = Doubts.find({}, { doubts: 1 });
+
   res.send(doubts);
 });
 
-app.post("/doubts", function(req,res){
+app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
-  const doubts = Doubts.find({facultyID: req.body.facID}, {doubts: 1});
-  
+  const doubts = Doubts.find({ facultyID: req.body.facID }, { doubts: 1 });
+
   res.send(doubts);
 });
 
-app.post("/faculty", function(req, res){
-  const courses = Faculty.find({facultyID: req.body.facID}, {coursesHandeled: 1});
+app.post("/faculty", function (req, res) {
+  const courses = Faculty.find({ facultyID: req.body.facID }, { coursesHandeled: 1 });
 
   res.send(courses);
 })
 
 // Returns attendance statistics of the students based on particular courseID
-app.post("/attendance-stats", function(req, res){
+app.post("/attendance-stats", function (req, res) {
   var cID = req.body.courseID;
-  var attendance = Course.find({courseID: cID}, {attendance: 1});
+  var attendance = Course.find({ courseID: cID }, { attendance: 1 });
   var attendanceList = [];
 
-  for(var key in attendance){
-    var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1}); 
+  for (var key in attendance) {
+    var studentName = Student.find({ registrationNumber: key.registrationNumber }, { StudentName: 1 });
     let obj = {
       "registrationNumber": key.registrationNumber,
       "studentName": studentName,
@@ -244,16 +257,16 @@ app.post("/attendance-stats", function(req, res){
 });
 
 // Returns studentName and attendanceStatus for a particular course on a particular date
-app.post("/faculty/attendance", function(req, res){
+app.post("/faculty/attendance", function (req, res) {
   var cID = req.body.courseID;
   var date = req.body.date; //"DD-MM-YY"
-  var attendance = Course.find({courseID: cID}, {attendance: 1});
+  var attendance = Course.find({ courseID: cID }, { attendance: 1 });
   var attendanceList = [];
 
-  for(var key in attendance){
-    var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1});
-    for(var key1 in key.historyOfAttendance){
-      if(key1.attendanceDate === date){
+  for (var key in attendance) {
+    var studentName = Student.find({ registrationNumber: key.registrationNumber }, { StudentName: 1 });
+    for (var key1 in key.historyOfAttendance) {
+      if (key1.attendanceDate === date) {
         let obj = {
           "registrationNumber": key.registrationNumber,
           "studentName": studentName,
@@ -261,7 +274,7 @@ app.post("/faculty/attendance", function(req, res){
         }
         attendanceList.push(obj);
       }
-      else{
+      else {
         res.send("Date doesn't match the Time slot given");
       }
     }
@@ -273,10 +286,10 @@ app.post("/faculty/attendance", function(req, res){
 
 
 let port = process.env.PORT;
-if(port == null || port == ""){
+if (port == null || port == "") {
   port = 3000
 }
 
-app.listen(port, function(req, res){
+app.listen(port, function (req, res) {
   console.log("Server started on", port);
 });
