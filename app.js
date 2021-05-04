@@ -100,10 +100,30 @@ const Doubts = mongoose.model("Doubts", doubtSchema);
 
 // ***  ROUTES *** //
 
+app.post("/newUser", function(req, res){
+  let {isStudent, studentName, regNo, facID, facultyName} = req.body;
+  if(isStudent){
+    const user = new Student({
+      registrationNumber: regNo,
+      studentName: studentName,
+      coursesTaken: []
+    })
+    user.save();
+  }
+  else{
+    const user = new Faculty({
+      facultyID: facID,
+      facultyName: facultyName,
+      coursesHandled: []
+    })
+    user.save();
+  }
+})
+
 app.post("/courses", function(req, res){
   // Retrieveing fields from Student object
   var regNo = req.body.regNo;
-  Student.find({registrationNumber: regNo}, function(err, studentCoursesTaken){
+  Student.find({registrationNumber: regNo}, {coursesTaken: 1}, function(err, studentCoursesTaken){
     if(err){
       res.send(err);
     }
@@ -113,31 +133,56 @@ app.post("/courses", function(req, res){
   });
 });
 
-app.post("/courses/:courseID", function(req,res){
+app.post("/courses/courseID", function(req,res){
   // Retrieving fields from course object
   var cID = req.body.courseID;
 
-  const courseInfo = Course.find({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1});
+  Course.find({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1}, function(err, courseInfo){
+    if(err){
+      res.send(err)
+    }
+    else{
+      res.send(courseInfo);
+    }
+  });
   
-  res.send(courseInfo);
+  
 });
 
-app.post("/courses/:courseID/attendance", function(req,res){
+app.post("/courses/courseID/attendance", function(req,res){
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
-  var attendance = Course.find({courseID: cID}, {attendance: 1});
+  Course.find({courseID: cID}, {attendance: 1}, function(err, attendance){
+    if(err){
+      res.send(err);
+    }
+    else{
+      if(attendance.registrationNumber === regNo)
+      {
+        var attendanceList = {
+          "attendancePercentage": attendance.attendancePercentage,
+          "attendanceHistory": attendance.historyOfAttendance
+        }
+        res.send(attendanceList)
+      }
+      // attendanceList = []
+      // for (var key in attendance) {
+      //   if (key.registrationNumber === regNo) {
+      //     let obj = {
+      //       "attendancePercentage": key.attendancePercentage,
+      //       "attendanceHistory": key.historyOfAttendance
+      //     };
+      //     attendanceList.push(obj);
+      //   }
+      // }
+      // res.send(attendanceList);
+    }
+  });
   
   // Checks the array of objects in attendance for the requested regNo
   // and stores those exact details in attendanceList which is then sent.
   
-  for (var key in attendance) {
-    if (key.registrationNumber === regNo) {
-      var attendanceList = {
-        "attendancePercentage": key.attendancePercentage,
-        "attendanceHistory": key.historyOfAttendance
-      };
-    }
-  }
+  
 
   // //Calculating attendance percentage
   // var tot = Object.size(attendanceHistory);
@@ -150,7 +195,7 @@ app.post("/courses/:courseID/attendance", function(req,res){
   // var attendancePercentage = (present/tot) * 100;
   // attendanceHistory.attendancePercentage
 
-  res.send(attendanceList);
+  
 });
 
 app.post("/attendance", function(req,res){
