@@ -181,6 +181,53 @@ app.post("/doubts", function(req,res){
   res.send(doubts);
 });
 
+app.post("/faculty", function(req, res){
+  const courses = Faculty.find({facultyID: req.body.facID}, {coursesTaken: 1});
+
+  res.send(courses);
+})
+
+app.post("/attendance-stats", function(req, res){
+  var cID = req.body.courseID;
+  var attendance = Course.find({courseID: cID}, {attendance: 1});
+  var attendanceList = [];
+  for(var key in attendance){
+      var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1}); 
+      let obj = {
+        "registrationNumber": key.registrationNumber,
+        "studentName": studentName,
+        "attendancePercentage": key.attendancePercentage
+      }
+      attendanceList.push(obj);
+  }
+  res.send(attendanceList);
+});
+
+app.post("/faculty/attendance", function(req, res){
+  var cID = req.body.courseID;
+  var date = req.body.date; //"DD-MM-YY"
+  var attendance = Course.find({courseID: cID}, {attendance: 1});
+  var attendanceList = [];
+  for(var key in attendance){
+    for(var key1 in key.historyOfAttendance){
+      if(key1.attendanceDate === date){
+        let obj = {
+          "registrationNumber": key.registrationNumber,
+          "attendancePercentage": key.attendancePercentage,
+          "attendanceStatus": key1.status
+        }
+        attendanceList.push(obj);
+      }
+      else{
+        res.send("Date doesn't match the Time slot given");
+      }
+    }
+  }
+  res.send(attendanceList);
+})
+
+
+
 let port = process.env.PORT;
 if(port == null || port == ""){
   port = 3000
