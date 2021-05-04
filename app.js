@@ -152,20 +152,19 @@ app.post("/attendance", function(req,res){
     var cID = key.courseID;
     var attendance = Course.find({courseID: cID},{attendance: 1})
     for(var key1 in attendance){
-        //TODO: sais ass paining too much
-        if(key1.registrationNumber === regNo){
-          let attendanceSummary = {
-            "courseID": cID,
-            "courseName": key.courseName,
-            "attendancePercentage": key1.attendancePercentage
-          }
-          percentageList.push(attendanceSummary);
+      //TODO: sais ass paining too much
+      if(key1.registrationNumber === regNo){
+        let attendanceSummary = {
+          "courseID": cID,
+          "courseName": key.courseName,
+          "attendancePercentage": key1.attendancePercentage
         }
+        percentageList.push(attendanceSummary);
+      }
     }
+
     res.send(percentageList);
   }
-  
-
 });
 
 app.get("/doubts", function(req,res){
@@ -187,27 +186,32 @@ app.post("/faculty", function(req, res){
   res.send(courses);
 })
 
+// Returns attendance statistics of the students based on particular courseID
 app.post("/attendance-stats", function(req, res){
   var cID = req.body.courseID;
   var attendance = Course.find({courseID: cID}, {attendance: 1});
   var attendanceList = [];
+
   for(var key in attendance){
-      var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1}); 
-      let obj = {
-        "registrationNumber": key.registrationNumber,
-        "studentName": studentName,
-        "attendancePercentage": key.attendancePercentage
-      }
-      attendanceList.push(obj);
+    var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1}); 
+    let obj = {
+      "registrationNumber": key.registrationNumber,
+      "studentName": studentName,
+      "attendancePercentage": key.attendancePercentage
+    }
+    attendanceList.push(obj);
   }
+
   res.send(attendanceList);
 });
 
+// Returns studentName and attendanceStatus for a particular course on a particular date
 app.post("/faculty/attendance", function(req, res){
   var cID = req.body.courseID;
   var date = req.body.date; //"DD-MM-YY"
   var attendance = Course.find({courseID: cID}, {attendance: 1});
   var attendanceList = [];
+
   for(var key in attendance){
     var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1});
     for(var key1 in key.historyOfAttendance){
@@ -224,6 +228,7 @@ app.post("/faculty/attendance", function(req, res){
       }
     }
   }
+
   res.send(attendanceList);
 });
 
@@ -235,5 +240,5 @@ if(port == null || port == ""){
 }
 
 app.listen(port, function(req, res){
-  console.log("Server started on the port");
+  console.log("Server started on port 3000");
 });
