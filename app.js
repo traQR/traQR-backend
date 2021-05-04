@@ -20,10 +20,10 @@ admin.initializeApp({
   credential: admin.credential.applicationDefault()
 });
 
-app.post("/oauth", function(req, res){
-  const idToken = req.body.jwt;
-  const decryptedToken = admin.auth().verifyIdToken(idToken);
-});
+// app.post("/oauth", function(req, res){
+//   const idToken = req.body.jwt;
+//   const decryptedToken = admin.auth().verifyIdToken(idToken);
+// });
 
 // Easter egg
 app.get("/traqr", function(req, res){
@@ -123,7 +123,7 @@ app.post("/newUser", function(req, res){
 app.post("/courses", function(req, res){
   // Retrieveing fields from Student object
   var regNo = req.body.regNo;
-  Student.find({registrationNumber: regNo}, {coursesTaken: 1}, function(err, studentCoursesTaken){
+  Student.findOne({registrationNumber: regNo}, {coursesTaken: 1}, function(err, studentCoursesTaken){
     if(err){
       res.send(err);
     }
@@ -137,7 +137,7 @@ app.post("/courses/courseID", function(req,res){
   // Retrieving fields from course object
   var cID = req.body.courseID;
 
-  Course.find({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1}, function(err, courseInfo){
+  Course.findOne({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1}, function(err, courseInfo){
     if(err){
       res.send(err)
     }
@@ -145,44 +145,30 @@ app.post("/courses/courseID", function(req,res){
       res.send(courseInfo);
     }
   });
-  
-  
 });
 
 app.post("/courses/courseID/attendance", function(req,res){
+  // Checks the array of objects in attendance for the requested regNo
+  // and stores those exact details in attendanceList which is then sent.
+  
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
-  Course.find({courseID: cID}, {attendance: 1}, function(err, attendance){
+  
+  Course.findOne({courseID: cID}, {attendance: 1}, function(err, tempAttendance){
     if(err){
       res.send(err);
     }
     else{
-      if(attendance.registrationNumber === regNo)
-      {
-        var attendanceList = {
-          "attendancePercentage": attendance.attendancePercentage,
-          "attendanceHistory": attendance.historyOfAttendance
+      var i;
+      var len = tempAttendance.attendance.length;
+
+      for(i=0; i<len; i++){
+        if(tempAttendance.attendance[i].registrationNumber === regNo){
+          res.send(tempAttendance.attendance[i]);
         }
-        res.send(attendanceList)
       }
-      // attendanceList = []
-      // for (var key in attendance) {
-      //   if (key.registrationNumber === regNo) {
-      //     let obj = {
-      //       "attendancePercentage": key.attendancePercentage,
-      //       "attendanceHistory": key.historyOfAttendance
-      //     };
-      //     attendanceList.push(obj);
-      //   }
-      // }
-      // res.send(attendanceList);
     }
   });
-  
-  // Checks the array of objects in attendance for the requested regNo
-  // and stores those exact details in attendanceList which is then sent.
-  
-  
 
   // //Calculating attendance percentage
   // var tot = Object.size(attendanceHistory);
@@ -194,8 +180,6 @@ app.post("/courses/courseID/attendance", function(req,res){
   // }
   // var attendancePercentage = (present/tot) * 100;
   // attendanceHistory.attendancePercentage
-
-  
 });
 
 app.post("/attendance", function(req,res){
