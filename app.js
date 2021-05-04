@@ -209,11 +209,12 @@ app.post("/faculty/attendance", function(req, res){
   var attendance = Course.find({courseID: cID}, {attendance: 1});
   var attendanceList = [];
   for(var key in attendance){
+    var studentName = Student.find({registrationNumber: key.registrationNumber},{StudentName: 1});
     for(var key1 in key.historyOfAttendance){
       if(key1.attendanceDate === date){
         let obj = {
           "registrationNumber": key.registrationNumber,
-          "attendancePercentage": key.attendancePercentage,
+          "studentName": studentName,
           "attendanceStatus": key1.status
         }
         attendanceList.push(obj);
@@ -224,7 +225,7 @@ app.post("/faculty/attendance", function(req, res){
     }
   }
   res.send(attendanceList);
-})
+});
 
 
 
