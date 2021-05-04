@@ -98,6 +98,8 @@ const Course = mongoose.model("Course", courseSchema);
 
 const Doubts = mongoose.model("Doubts", doubtSchema);
 
+// ***  ROUTES *** //
+
 app.post("/courses", function(req, res){
   // Retrieveing fields from Student object
   var regNo = req.body.regNo;
