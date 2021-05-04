@@ -9,7 +9,10 @@ const app = express();
 
 app.use(express.json());
 
-app.use(express.urlencoded());
+app.use(express.urlencoded({
+  extended: true
+}
+));
 
 var serviceAccount = require("./service_acc.json");
 
@@ -98,9 +101,14 @@ const Doubts = mongoose.model("Doubts", doubtSchema);
 app.post("/courses", function(req, res){
   // Retrieveing fields from Student object
   var regNo = req.body.regNo;
-
-  const studentCoursesTaken = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
-  res.send(studentCoursesTaken);
+  Student.find({registrationNumber: regNo}, function(err, studentCoursesTaken){
+    if(err){
+      res.send(err);
+    }
+    else{
+      res.send(studentCoursesTaken);
+    }
+  });
 });
 
 app.post("/courses/:courseID", function(req,res){
@@ -108,6 +116,7 @@ app.post("/courses/:courseID", function(req,res){
   var cID = req.body.courseID;
 
   const courseInfo = Course.find({courseID: cID}, {courseID: 1, courseName: 1, slot: 1, facultyID: 1});
+  
   res.send(courseInfo);
 });
 
@@ -147,12 +156,10 @@ app.post("/attendance", function(req,res){
   var percentageList = [];
 
   var allCourses = Student.find({registrationNumber: regNo}, {coursesTaken: 1});
-  // sai hella gae
   for(var key in allCourses) {
     var cID = key.courseID;
     var attendance = Course.find({courseID: cID},{attendance: 1})
     for(var key1 in attendance){
-      //TODO: sais ass paining too much
       if(key1.registrationNumber === regNo){
         let attendanceSummary = {
           "courseID": cID,
@@ -240,5 +247,5 @@ if(port == null || port == ""){
 }
 
 app.listen(port, function(req, res){
-  console.log("Server started on port 3000");
+  console.log("Server started on", port);
 });
