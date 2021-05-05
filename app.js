@@ -232,7 +232,7 @@ app.post("/attendance", function (req, res) {
               }
             }
           );
-        } 
+        }
         res.send(percentageList);
       }
     }
@@ -268,10 +268,10 @@ app.post("/doubts", function (req, res) {
               } else {
                 var index = 0;
                 let obj = {
-                  "courseID": cnas.courseID,
-                  "courseName": cnas.courseName,
-                  "doubt": markedDoubts.doubts[index].doubt
-                }
+                  courseID: cnas.courseID,
+                  courseName: cnas.courseName,
+                  doubt: markedDoubts.doubts[index].doubt,
+                };
                 doubtsList.push(obj);
                 // console.log(doubtsList);
                 index++;
@@ -303,23 +303,30 @@ app.post("/faculty", function (req, res) {
 // Returns attendance statistics of the students based on particular courseID
 app.post("/attendance-stats", function (req, res) {
   var cID = req.body.courseID;
-  var attendance = Course.find({ courseID: cID }, { attendance: 1 });
-  var attendanceList = [];
+  let attendanceList = [];
 
-  for (var key in attendance) {
-    var studentName = Student.find(
-      { registrationNumber: key.registrationNumber },
-      { StudentName: 1 }
-    );
-    let obj = {
-      registrationNumber: key.registrationNumber,
-      studentName: studentName,
-      attendancePercentage: key.attendancePercentage,
-    };
-    attendanceList.push(obj);
-  }
-
-  res.send(attendanceList);
+  var attendance = Course.findOne(
+    { courseID: cID },
+    { attendance: 1 },
+    async function (err, stats) {
+      var len = stats.attendance.length;
+      for(var i=0; i<len; i++){
+        await Student.findOne(
+          { registrationNumber: stats.attendance[i].registrationNumber },
+          { studentName: 1 },
+          function(err, asnap) {// asnap = attendance student name and percentage
+            let obj = {
+              registrationNumber: stats.attendance[i].registrationNumber,
+              studentName: asnap.studentName,
+              attendancePercentage: stats.attendance[i].attendancePercentage
+            };
+            attendanceList.push(obj);
+          }
+        );
+      }
+      res.send(attendanceList);
+    }
+  );
 });
 
 // Returns studentName and attendanceStatus for a particular course on a particular date
@@ -351,40 +358,36 @@ app.post("/faculty/attendance", function (req, res) {
   res.send(attendanceList);
 });
 
-app.post("/markAttendance", function(req,res) {
+app.post("/markAttendance", function (req, res) {
   var facID = req.body.facID; // This is in da QR
   var regNo = req.body.regNo;
   var cID = req.body.cID;
   var date = req.body.date;
   var isPresent = req.body.status; // This is bool bitch
 
-  var index=0;
-  if(isPresent){
-    Course.findOne({courseID: cID}, function(err, course) {
-      if(err) {
+  var index = 0;
+  if (isPresent) {
+    Course.findOne({ courseID: cID }, function (err, course) {
+      if (err) {
         res.send(err);
-      }
-      else {
+      } else {
         var len = course.attendance.length;
-        for(var i=0; i<len; i++){
-          if(courses.attendance[i].registrationNumber === regNo){
+        for (var i = 0; i < len; i++) {
+          if (courses.attendance[i].registrationNumber === regNo) {
             index = i;
             var obj = {
-              "attendanceDate": date,
-              "status": "true"
-            }
+              attendanceDate: date,
+              status: "true",
+            };
 
             courses.attendance[i].historyAttendance.push(obj);
-
           }
         }
       }
     });
 
     // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
-  }
-  else {
-
+  } else {
   }
 });
 
