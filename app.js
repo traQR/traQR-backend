@@ -202,13 +202,13 @@ app.post("/attendance", function (req, res) {
   Student.findOne(
     { registrationNumber: regNo },
     { coursesTaken: 1 },
-    function (err, studentCourses) {
+    async function (err, studentCourses) {
       if (err) {
         res.send(err);
       } else {
         var len = studentCourses.coursesTaken.length;
         for (var i = 0; i < len; i++) {
-          Course.findOne(
+          await Course.findOne(
             { courseID: studentCourses.coursesTaken[i].courseID },
             { courseName: 1, slot: 1, attendance: 1 },
             function (err, attendanceSummary) {
@@ -229,11 +229,11 @@ app.post("/attendance", function (req, res) {
                     percentageList.push(obj);
                   }
                 }
-                res.send(percentageList);
               }
             }
           );
-        }
+        } 
+        res.send(percentageList);
       }
     }
   );
@@ -247,18 +247,18 @@ app.get("/doubts", function (req, res) {
 
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
-  doubtsList = [];
+  let doubtsList = [];
   Doubts.findOne(
     { facultyID: req.body.facID },
     { doubts: 1 },
-    function (err, markedDoubts) {
+    async function (err, markedDoubts) {
       if (err) {
         res.send(err);
       } else {
         var len = markedDoubts.doubts.length;
         var i;
         for (i = 0; i < len; i++) {
-          Course.findOne(
+          await Course.findOne(
             { courseID: markedDoubts.doubts[i].courseID },
             { courseID: 1, courseName: 1, slot: 1 },
             function (err, cnas) {
@@ -273,11 +273,14 @@ app.post("/doubts", function (req, res) {
                   "doubt": markedDoubts.doubts[index].doubt
                 }
                 doubtsList.push(obj);
+                // console.log(doubtsList);
                 index++;
               }
             }
           );
         }
+        // console.log(doubtsList);
+        res.send(doubtsList);
       }
     }
   );
@@ -346,6 +349,43 @@ app.post("/faculty/attendance", function (req, res) {
   }
 
   res.send(attendanceList);
+});
+
+app.post("/markAttendance", function(req,res) {
+  var facID = req.body.facID; // This is in da QR
+  var regNo = req.body.regNo;
+  var cID = req.body.cID;
+  var date = req.body.date;
+  var isPresent = req.body.status; // This is bool bitch
+
+  var index=0;
+  if(isPresent){
+    Course.findOne({courseID: cID}, function(err, course) {
+      if(err) {
+        res.send(err);
+      }
+      else {
+        var len = course.attendance.length;
+        for(var i=0; i<len; i++){
+          if(courses.attendance[i].registrationNumber === regNo){
+            index = i;
+            var obj = {
+              "attendanceDate": date,
+              "status": "true"
+            }
+
+            courses.attendance[i].historyAttendance.push(obj);
+
+          }
+        }
+      }
+    });
+
+    // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
+  }
+  else {
+
+  }
 });
 
 let port = process.env.PORT;
