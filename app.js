@@ -361,31 +361,40 @@ app.post("/faculty/attendance", function (req, res) {
 app.post("/markAttendance", function (req, res) {
   var facID = req.body.facID; // This is in da QR
   var regNo = req.body.regNo;
-  var cID = req.body.cID;
+  var cID = req.body.courseID;
   var date = req.body.date;
   var isPresent = req.body.status; // This is bool bitch
 
-  var index = 0;
+let attendanceList = []
   if (isPresent) {
-    Course.findOne({ courseID: cID }, function (err, course) {
+    Course.findOne({ courseID: cID }, async function (err, course) {
       if (err) {
         res.send(err);
       } else {
         var len = course.attendance.length;
         for (var i = 0; i < len; i++) {
-          if (courses.attendance[i].registrationNumber === regNo) {
-            index = i;
-            var obj = {
+          if (course.attendance[i].registrationNumber === regNo) {
+            let obj = {
               attendanceDate: date,
-              status: "true",
+              status: "Present",
             };
-
-            courses.attendance[i].historyAttendance.push(obj);
+            attendanceList.push(obj);
+            
           }
         }
       }
     });
-
+    Course.updateOne({courseID: cID, attendance: {$elemMatch: {registrationNumber: regNo}}}, {attendance: {historyOfAttendance: {$push: {
+      attendanceDate: date,
+      status: "Present"
+    }}}}, function(err, doc){
+      if(err){
+        res.send(err)
+      }
+      else{
+        res.send("Successfully updated");
+      }
+    })
     // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
   } else {
   }
