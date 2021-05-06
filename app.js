@@ -108,6 +108,8 @@ const Doubts = mongoose.model("Doubts", doubtSchema);
 
 // ***  ROUTES *** //
 
+
+// To create new user
 app.post("/newUser", function (req, res) {
   let { isStudent, studentName, regNo, facID, facultyName } = req.body;
   if (isStudent) {
@@ -127,9 +129,10 @@ app.post("/newUser", function (req, res) {
   }
   res.send("Successfully inserted");
 });
-/*  */
-app.post("/courses", function (req, res) {
+
+
   // Retrieveing fields from Student object
+app.post("/courses", function (req, res) {
   var regNo = req.body.regNo;
   Student.findOne(
     { registrationNumber: regNo },
@@ -144,8 +147,9 @@ app.post("/courses", function (req, res) {
   );
 });
 
+
+// Retrieving fields from course object
 app.post("/courses/courseID", function (req, res) {
-  // Retrieving fields from course object
   var cID = req.body.courseID;
 
   Course.findOne(
@@ -161,10 +165,10 @@ app.post("/courses/courseID", function (req, res) {
   );
 });
 
-app.post("/courses/courseID/attendance", function (req, res) {
-  // Checks the array of objects in attendance for the requested regNo
-  // and stores those exact details in attendanceList which is then sent.
 
+// Checks the array of objects in attendance for the requested regNo
+// and stores those exact details in attendanceList which is then sent.
+app.post("/courses/courseID/attendance", function (req, res) {
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
 
@@ -199,6 +203,8 @@ app.post("/courses/courseID/attendance", function (req, res) {
   // attendanceHistory.attendancePercentage
 });
 
+
+// Sends courseName, slot and attendancePercent based on registration number
 app.post("/attendance", function (req, res) {
   var regNo = req.body.regNo;
   var percentageList = [];
@@ -227,8 +233,7 @@ app.post("/attendance", function (req, res) {
                     let obj = {
                       courseName: attendanceSummary.courseName,
                       slot: attendanceSummary.slot,
-                      attendancePercent:
-                        attendanceSummary.attendance[j].attendancePercentage,
+                      attendancePercent: attendanceSummary.attendance[j].attendancePercentage
                     };
                     percentageList.push(obj);
                   }
@@ -243,12 +248,17 @@ app.post("/attendance", function (req, res) {
   );
 });
 
+
+// GET route that sends the doubt object
 app.get("/doubts", function (req, res) {
   const doubts = Doubts.find({}, { doubts: 1 });
 
   res.send(doubts);
 });
 
+
+// POST route that sends courseID, courseName and the marked
+// doubts based on the facultyID
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
   let doubtsList = [];
@@ -265,8 +275,7 @@ app.post("/doubts", function (req, res) {
           await Course.findOne(
             { courseID: markedDoubts.doubts[i].courseID },
             { courseID: 1, courseName: 1, slot: 1 },
-            function (err, cnas) {
-              //cnas = course name and slot
+            function (err, cnas) { //cnas = course name and slot
               if (err) {
                 res.send(err);
               } else {
@@ -277,19 +286,19 @@ app.post("/doubts", function (req, res) {
                   doubt: markedDoubts.doubts[index].doubt,
                 };
                 doubtsList.push(obj);
-                // console.log(doubtsList);
                 index++;
               }
             }
           );
         }
-        // console.log(doubtsList);
         res.send(doubtsList);
       }
     }
   );
 });
 
+
+// Send teacherCourses
 app.post("/faculty", function (req, res) {
   Faculty.findOne(
     { facultyID: req.body.facID },
@@ -303,6 +312,7 @@ app.post("/faculty", function (req, res) {
     }
   );
 });
+
 
 // Returns attendance statistics of the students based on particular courseID
 app.post("/attendance-stats", function (req, res) {
@@ -333,6 +343,7 @@ app.post("/attendance-stats", function (req, res) {
   );
 });
 
+
 // Returns studentName and attendanceStatus for a particular course on a particular date
 app.post("/faculty/attendance", function (req, res) {
   var cID = req.body.courseID;
@@ -362,6 +373,9 @@ app.post("/faculty/attendance", function (req, res) {
   res.send(attendanceList);
 });
 
+
+// Updates the database based on whether the student's scan 
+// was valid or invalid
 app.post("/markAttendance", function (req, res) {
   var facID = req.body.facID; // This is in da QR
   var regNo = req.body.regNo;
