@@ -440,7 +440,7 @@ app.post("/newCourse", function(req, res) {
 
   newCourse.save(function(err){
     if(!err){
-      res.status(200).send("oK");
+      res.status(200).send(newCourse);
     } else{
       res.send(err);
     }
