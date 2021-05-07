@@ -120,14 +120,14 @@ app.post("/newUser", function (req, res) {
       studentName: studentName,
       coursesTaken: [],
     });
-    //user.save();
+    user.save();
   } else {
     const user = new Faculty({
       facultyID: facID,
       facultyName: facultyName,
       coursesHandled: [],
     });
-    //user.save();
+    user.save();
   }
   res.send("Successfully inserted");
 });
