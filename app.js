@@ -251,59 +251,10 @@ app.post("/attendance", function (req, res) {
 });
 
 
-// GET route that sends the doubt object
-app.get("/doubts", function (req, res) {
-  const doubts = Doubts.find({}, { doubts: 1 });
-
-  res.send(doubts);
-});
-
-
-// POST route that sends courseID, courseName and the marked
-// doubts based on the facultyID
-app.post("/doubts", function (req, res) {
-  // facID should be substituted for the corresponding front-end variable
-  let doubtsList = [];
-  Doubts.findOne(
-    { facultyID: req.body.facID },
-    { doubts: 1 },
-    async function (err, markedDoubts) {
-      if (err) {
-        res.send(err);
-      } else {
-        var len = markedDoubts.doubts.length;
-        var i;
-        for (i = 0; i < len; i++) {
-          await Course.findOne(
-            { courseID: markedDoubts.doubts[i].courseID },
-            { courseID: 1, courseName: 1, slot: 1 },
-            function (err, cnas) { //cnas = course name and slot
-              if (err) {
-                res.send(err);
-              } else {
-                var index = 0;
-                let obj = {
-                  courseID: cnas.courseID,
-                  courseName: cnas.courseName,
-                  doubt: markedDoubts.doubts[index].doubt,
-                };
-                doubtsList.push(obj);
-                index++;
-              }
-            }
-          );
-        }
-        res.send(doubtsList);
-      }
-    }
-  );
-});
-
-
 // Send teacherCourses
 app.post("/faculty", function (req, res) {
   Faculty.findOne(
-    { facultyID: req.body.facID },
+    { facultyID: req.body.facultyID },
     { coursesHandled: 1 },
     function (err, teacherCourses) {
       if (err) {
@@ -445,6 +396,56 @@ app.post("/newCourse", function(req, res) {
       res.send(err);
     }
   }); 
+});
+
+// ** DOUBT ROUTES ** //
+
+// GET route that sends the doubt object
+app.get("/doubts", function (req, res) {
+  const doubts = Doubts.find({}, { doubts: 1 });
+
+  res.send(doubts);
+});
+
+
+// POST route that sends courseID, courseName and the marked
+// doubts based on the facultyID
+app.post("/doubts", function (req, res) {
+  // facID should be substituted for the corresponding front-end variable
+  let doubtsList = [];
+  Doubts.findOne(
+    { facultyID: req.body.facID },
+    { doubts: 1 },
+    async function (err, markedDoubts) {
+      if (err) {
+        res.send(err);
+      } else {
+        var len = markedDoubts.doubts.length;
+        var i;
+        for (i = 0; i < len; i++) {
+          await Course.findOne(
+            { courseID: markedDoubts.doubts[i].courseID },
+            { courseID: 1, courseName: 1, slot: 1 },
+            function (err, cnas) { //cnas = course name and slot
+              if (err) {
+                res.send(err);
+              } else {
+                var index = 0;
+                let obj = {
+                  courseID: cnas.courseID,
+                  courseName: cnas.courseName,
+                  doubt: markedDoubts.doubts[index].doubt,
+                };
+                doubtsList.push(obj);
+                index++;
+              }
+            }
+          );
+        }
+        res.send(doubtsList);
+      }
+    }
+  );
 });
 
 let port = process.env.PORT;
