@@ -45,7 +45,7 @@ mongoose.connect(
   { useNewUrlParser: true, useUnifiedTopology: true }
 );
 
-mongoose.set('useFindAndModify', false);
+mongoose.set("useFindAndModify", false);
 
 const courseSchema = new mongoose.Schema({
   courseID: {
@@ -208,7 +208,7 @@ app.post("/attendance", function (req, res) {
         for (var i = 0; i < len; i++) {
           await Course.findOne(
             { courseID: studentCourses.coursesTaken[i].courseID },
-            { courseID: 1 ,courseName: 1, slot: 1, attendance: 1 },
+            { courseID: 1, courseName: 1, slot: 1, attendance: 1 },
             function (err, attendanceSummary) {
               if (err) {
                 res.send(err);
@@ -249,7 +249,7 @@ app.post("/attendance", function (req, res) {
             }
           );
         }
-        res.send({percentageList});
+        res.send({ percentageList });
       }
     }
   );
@@ -264,7 +264,11 @@ app.post("/faculty", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        res.send(teacherCourses);
+        if (!teacherCourses) {
+          res.sendStatus(404);
+        } else {
+          res.send(teacherCourses);
+        }
       }
     }
   );
@@ -275,7 +279,7 @@ app.post("/attendance-stats", function (req, res) {
   var cID = req.body.courseID;
   let attendanceList = [];
 
- Course.findOne(
+  Course.findOne(
     { courseID: cID },
     { attendance: 1 },
     async function (err, stats) {
@@ -389,33 +393,35 @@ app.post("/markAttendance", function (req, res) {
 app.post("/newCourse", async function (req, res) {
   let facID = req.body.facultyID;
   let cName = req.body.courseName;
-  let slot = req.body.slot;  
-  
+  let slot = req.body.slot;
+
   let newCourseID = uuidv4();
 
-  await Course.find({ facultyID: facID },{ courseName: 1, slot: 1 },
-  
-      async (err, checkCourse) => {
+  await Course.find(
+    { facultyID: facID },
+    { courseName: 1, slot: 1 },
+
+    async (err, checkCourse) => {
       if (err) {
         res.write(err);
-      } else{
-
+      } else {
         let duplicate = false;
 
-        for (var i = 0; i < checkCourse.length; i++) { //added direct len 
+        for (var i = 0; i < checkCourse.length; i++) {
+          //added direct len
           if (
             checkCourse[i].courseName === cName &&
             checkCourse[i].slot === slot
           ) {
             duplicate = true;
             break;
-          } 
+          }
         }
-      
+
         //Checking for duplicates
-        if(duplicate){
+        if (duplicate) {
           res.send("Error: Sending duplicate course");
-        }else {
+        } else {
           //new course object
           let newCourse = new Course({
             courseID: newCourseID,
@@ -426,24 +432,24 @@ app.post("/newCourse", async function (req, res) {
           });
 
           //save the new course
-          newCourse.save((err)=>{
+          newCourse.save((err) => {
             if (!err) {
               console.log("Updated successfully");
             } else {
               res.send(err);
             }
           });
-          
+
           let facultyHandled = {
-              courseID: newCourseID,
-              courseName: cName
-          }              
-              
-          
-          Faculty.findOneAndUpdate( { facultyID: facID },
+            courseID: newCourseID,
+            courseName: cName,
+          };
+
+          Faculty.findOneAndUpdate(
+            { facultyID: facID },
             {
               $push: {
-                coursesHandled: facultyHandled
+                coursesHandled: facultyHandled,
               },
             },
             function (err, result) {
