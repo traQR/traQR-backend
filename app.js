@@ -134,7 +134,7 @@ app.post("/newUser", function (req, res) {
   // Retrieveing fields from Student object
 app.post("/courses", function (req, res) {
   var regNo = req.body.regNo;
-  Student.findOne(
+  Student.find(
     { registrationNumber: regNo },
     { coursesTaken: 1 },
     function (err, studentCoursesTaken) {
@@ -383,8 +383,9 @@ app.post("/markAttendance", function (req, res) {
   var date = req.body.date;
   var isPresent = req.body.status; // This is bool bitch
 
-let attendanceList = []
+  let attendanceList = [];
   if (isPresent) {
+    
     Course.findOne({ courseID: cID }, async function (err, course) {
       if (err) {
         res.send(err);
@@ -397,11 +398,12 @@ let attendanceList = []
               status: "Present",
             };
             attendanceList.push(obj);
-            
           }
         }
       }
     });
+
+
     Course.updateOne({courseID: cID, attendance: {$elemMatch: {registrationNumber: regNo}}}, {attendance: {historyOfAttendance: {$push: {
       attendanceDate: date,
       status: "Present"
@@ -416,6 +418,31 @@ let attendanceList = []
     // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
   } else {
   }
+});
+
+
+// To add a new course to the database
+app.post("/newCourse", function(req, res) {
+  let facID = req.body.facultyID;
+  let cName = req.body.courseName;
+  let slot = req.body.slot;
+
+  let newCourseID = uuidv4();
+  let newCourse = new Course({
+    courseID: newCourseID,
+    courseName: cName,
+    slot: slot,
+    facultyID: facID,
+    attendance: []
+  });
+
+  newCourse.save(function(err){
+    if(!err){
+      res.sendStatus(200).send("oK");
+    } else{
+      res.send(err);
+    }
+  }); 
 });
 
 let port = process.env.PORT;
