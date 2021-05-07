@@ -120,14 +120,14 @@ app.post("/newUser", function (req, res) {
       studentName: studentName,
       coursesTaken: [],
     });
-    user.save();
+    //user.save();
   } else {
     const user = new Faculty({
       facultyID: facID,
       facultyName: facultyName,
       coursesHandled: [],
     });
-    user.save();
+    //user.save();
   }
   res.send("Successfully inserted");
 });
@@ -192,6 +192,17 @@ app.post("/courses/courseID/attendance", function (req, res) {
       }
     }
   );
+
+  // //Calculating attendance percentage
+  // var tot = Object.size(attendanceHistory);
+  // var present = 0;
+  // for(var key in attendanceHistory){
+  //   if(JSON.parse(attendanceHistory).status == "Present"){
+  //     present++;
+  //   }
+  // }
+  // var attendancePercentage = (present/tot) * 100;
+  // attendanceHistory.attendancePercentage
 });
 
 
@@ -218,23 +229,13 @@ app.post("/attendance", function (req, res) {
               } else {
                 var len1 = attendanceSummary.attendance.length;
                 for (var j = 0; j < len1; j++) {
-                  if (attendanceSummary.attendance[j].registrationNumber === regNo) {
-                    //Calculating attendance percentage
-                    let tot = attendanceSummary.attendance[j].historyOfAttendance.length;
-                    let present = 0;
-                    
-                    for(let k=0; k<tot; k++){
-                      if(attendanceSummary.attendance[j].historyOfAttendance[k].status == "Present"){
-                        present++;
-                      }
-                    }
-                    let absent = tot - present;
+                  if (
+                    attendanceSummary.attendance[j].registrationNumber === regNo
+                  ) {
                     let obj = {
                       courseName: attendanceSummary.courseName,
                       slot: attendanceSummary.slot,
-                      attendancePercent: attendanceSummary.attendance[j].attendancePercentage,
-                      present: present,
-                      absent: absent
+                      attendancePercent: attendanceSummary.attendance[j].attendancePercentage
                     };
                     percentageList.push(obj);
                   }
@@ -250,10 +251,59 @@ app.post("/attendance", function (req, res) {
 });
 
 
+// GET route that sends the doubt object
+app.get("/doubts", function (req, res) {
+  const doubts = Doubts.find({}, { doubts: 1 });
+
+  res.send(doubts);
+});
+
+
+// POST route that sends courseID, courseName and the marked
+// doubts based on the facultyID
+app.post("/doubts", function (req, res) {
+  // facID should be substituted for the corresponding front-end variable
+  let doubtsList = [];
+  Doubts.findOne(
+    { facultyID: req.body.facID },
+    { doubts: 1 },
+    async function (err, markedDoubts) {
+      if (err) {
+        res.send(err);
+      } else {
+        var len = markedDoubts.doubts.length;
+        var i;
+        for (i = 0; i < len; i++) {
+          await Course.findOne(
+            { courseID: markedDoubts.doubts[i].courseID },
+            { courseID: 1, courseName: 1, slot: 1 },
+            function (err, cnas) { //cnas = course name and slot
+              if (err) {
+                res.send(err);
+              } else {
+                var index = 0;
+                let obj = {
+                  courseID: cnas.courseID,
+                  courseName: cnas.courseName,
+                  doubt: markedDoubts.doubts[index].doubt,
+                };
+                doubtsList.push(obj);
+                index++;
+              }
+            }
+          );
+        }
+        res.send(doubtsList);
+      }
+    }
+  );
+});
+
+
 // Send teacherCourses
 app.post("/faculty", function (req, res) {
   Faculty.findOne(
-    { facultyID: req.body.facultyID },
+    { facultyID: req.body.facID },
     { coursesHandled: 1 },
     function (err, teacherCourses) {
       if (err) {
@@ -354,19 +404,16 @@ app.post("/markAttendance", function (req, res) {
         }
       }
     });
-
-
-    Course.updateOne({courseID: cID, attendance: {$elemMatch: {registrationNumber: regNo}}}, {attendance: {historyOfAttendance: {$push: {
-      attendanceDate: date,
-      status: "Present"
-    }}}}, function(err, doc){
-      if(err){
-        res.send(err)
-      }
-      else{
-        res.send("Successfully updated");
-      }
-    })
+    // Course.updateOne({courseID: cID, attendance: {$elemMatch: {registrationNumber: regNo}}}, {attendance: {$push: { historyOfAttendance:
+    //   [date, "Present"]
+    // }}}, function(err, doc){
+    //   if(err){
+    //     res.send(err)
+    //   }
+    //   else{
+    //     res.send("Successfully updated");
+    //   }
+    // })
     // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
   } else {
   }
@@ -390,61 +437,11 @@ app.post("/newCourse", function(req, res) {
 
   newCourse.save(function(err){
     if(!err){
-      res.status(200).send(newCourse);
+      res.status(200).send("oK");
     } else{
       res.send(err);
     }
   }); 
-});
-
-// ** DOUBT ROUTES ** //
-
-// GET route that sends the doubt object
-app.get("/doubts", function (req, res) {
-  const doubts = Doubts.find({}, { doubts: 1 });
-
-  res.send(doubts);
-});
-
-
-// POST route that sends courseID, courseName and the marked
-// doubts based on the facultyID
-app.post("/doubts", function (req, res) {
-  // facID should be substituted for the corresponding front-end variable
-  let doubtsList = [];
-  Doubts.findOne(
-    { facultyID: req.body.facID },
-    { doubts: 1 },
-    async function (err, markedDoubts) {
-      if (err) {
-        res.send(err);
-      } else {
-        var len = markedDoubts.doubts.length;
-        var i;
-        for (i = 0; i < len; i++) {
-          await Course.findOne(
-            { courseID: markedDoubts.doubts[i].courseID },
-            { courseID: 1, courseName: 1, slot: 1 },
-            function (err, cnas) { //cnas = course name and slot
-              if (err) {
-                res.send(err);
-              } else {
-                var index = 0;
-                let obj = {
-                  courseID: cnas.courseID,
-                  courseName: cnas.courseName,
-                  doubt: markedDoubts.doubts[index].doubt,
-                };
-                doubtsList.push(obj);
-                index++;
-              }
-            }
-          );
-        }
-        res.send(doubtsList);
-      }
-    }
-  );
 });
 
 let port = process.env.PORT;
