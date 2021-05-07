@@ -192,17 +192,6 @@ app.post("/courses/courseID/attendance", function (req, res) {
       }
     }
   );
-
-  // //Calculating attendance percentage
-  // var tot = Object.size(attendanceHistory);
-  // var present = 0;
-  // for(var key in attendanceHistory){
-  //   if(JSON.parse(attendanceHistory).status == "Present"){
-  //     present++;
-  //   }
-  // }
-  // var attendancePercentage = (present/tot) * 100;
-  // attendanceHistory.attendancePercentage
 });
 
 
@@ -229,13 +218,23 @@ app.post("/attendance", function (req, res) {
               } else {
                 var len1 = attendanceSummary.attendance.length;
                 for (var j = 0; j < len1; j++) {
-                  if (
-                    attendanceSummary.attendance[j].registrationNumber === regNo
-                  ) {
+                  if (attendanceSummary.attendance[j].registrationNumber === regNo) {
+                    //Calculating attendance percentage
+                    let tot = attendanceSummary.attendance[j].historyOfAttendance.length;
+                    let present = 0;
+                    
+                    for(let k=0; k<tot; k++){
+                      if(attendanceSummary.attendance[j].historyOfAttendance[k].status == "Present"){
+                        present++;
+                      }
+                    }
+                    let absent = tot - present;
                     let obj = {
                       courseName: attendanceSummary.courseName,
                       slot: attendanceSummary.slot,
-                      attendancePercent: attendanceSummary.attendance[j].attendancePercentage
+                      attendancePercent: attendanceSummary.attendance[j].attendancePercentage,
+                      present: present,
+                      absent: absent
                     };
                     percentageList.push(obj);
                   }
