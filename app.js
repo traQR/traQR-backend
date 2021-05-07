@@ -7,6 +7,8 @@ var cors = require("cors");
 
 const admin = require("firebase-admin");
 
+const {v4 : uuidv4} = require('uuid');
+
 const app = express();
 
 app.use(express.json());
@@ -438,7 +440,7 @@ app.post("/newCourse", function(req, res) {
 
   newCourse.save(function(err){
     if(!err){
-      res.sendStatus(200).send("oK");
+      res.status(200).send("oK");
     } else{
       res.send(err);
     }
