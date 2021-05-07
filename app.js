@@ -264,7 +264,7 @@ app.post("/faculty", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        if (!teacherCourses) {
+        if (teacherCourses == null) {
           res.sendStatus(404);
         } else {
           res.send(teacherCourses);
