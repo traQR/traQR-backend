@@ -152,15 +152,39 @@ app.post("/courses", function (req, res) {
 // Retrieving fields from course object
 app.post("/courses/courseID", function (req, res) {
   var cID = req.body.courseID;
-
+  let info = []
   Course.findOne(
     { courseID: cID },
     { courseID: 1, courseName: 1, slot: 1, facultyID: 1 },
-    function (err, courseInfo) {
+    async function (err, courseInfo) {
       if (err) {
         res.send(err);
       } else {
-        res.send(courseInfo);
+        if(courseInfo == null){
+          res.sendStatus(404);
+        }
+        else{
+          await Faculty.findOne({facultyID: courseInfo.facultyID}, {facultyID: 1, facultyName:1}, function(err, facultyInfo){
+            if(err){
+
+            }else{
+              if(facultyInfo == null){
+                res.sendStatus(404);
+              }
+              else{
+                let obj = {
+                  courseID: courseInfo.courseID,
+                  courseName: courseInfo.courseName,
+                  slot: courseInfo.slot,
+                  facultyID: courseInfo.facultyID,
+                  facultyName: facultyInfo.facultyName
+                }
+                info.push(obj);
+                res.send({info: obj});
+              }
+            }
+          })
+        }
       }
     }
   );
