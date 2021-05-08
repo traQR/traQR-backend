@@ -152,7 +152,7 @@ app.post("/courses", function (req, res) {
 // Retrieving fields from course object
 app.post("/courses/courseID", function (req, res) {
   var cID = req.body.courseID;
-  let info = []
+  let info = [];
   Course.findOne(
     { courseID: cID },
     { courseID: 1, courseName: 1, slot: 1, facultyID: 1 },
@@ -160,30 +160,31 @@ app.post("/courses/courseID", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        if(courseInfo == null){
+        if (courseInfo == null) {
           res.sendStatus(404);
-        }
-        else{
-          await Faculty.findOne({facultyID: courseInfo.facultyID}, {facultyID: 1, facultyName:1}, function(err, facultyInfo){
-            if(err){
-
-            }else{
-              if(facultyInfo == null){
-                res.sendStatus(404);
-              }
-              else{
-                let obj = {
-                  courseID: courseInfo.courseID,
-                  courseName: courseInfo.courseName,
-                  slot: courseInfo.slot,
-                  facultyID: courseInfo.facultyID,
-                  facultyName: facultyInfo.facultyName
+        } else {
+          await Faculty.findOne(
+            { facultyID: courseInfo.facultyID },
+            { facultyID: 1, facultyName: 1 },
+            function (err, facultyInfo) {
+              if (err) {
+              } else {
+                if (facultyInfo == null) {
+                  res.sendStatus(404);
+                } else {
+                  let obj = {
+                    courseID: courseInfo.courseID,
+                    courseName: courseInfo.courseName,
+                    slot: courseInfo.slot,
+                    facultyID: courseInfo.facultyID,
+                    facultyName: facultyInfo.facultyName,
+                  };
+                  info.push(obj);
+                  res.send({ info: obj });
                 }
-                info.push(obj);
-                res.send({info: obj});
               }
             }
-          })
+          );
         }
       }
     }
@@ -332,29 +333,57 @@ app.post("/attendance-stats", function (req, res) {
 app.post("/faculty/attendance", function (req, res) {
   var cID = req.body.courseID;
   var date = req.body.date; //"DD-MM-YY"
-  var attendance = Course.find({ courseID: cID }, { attendance: 1 });
-  var attendanceList = [];
-
-  for (var key in attendance) {
-    var studentName = Student.find(
-      { registrationNumber: key.registrationNumber },
-      { StudentName: 1 }
-    );
-    for (var key1 in key.historyOfAttendance) {
-      if (key1.attendanceDate === date) {
-        let obj = {
-          registrationNumber: key.registrationNumber,
-          studentName: studentName,
-          attendanceStatus: key1.status,
-        };
-        attendanceList.push(obj);
+  let attendanceList = [];
+  Course.findOne(
+    { courseID: cID },
+    { attendance: 1 },
+    async function (err, studentAttendance) {
+      if (err) {
+        res.send(err);
       } else {
-        res.send("Date doesn't match the Time slot given");
+        if (studentAttendance == null) {
+          res.sendStatus(404);
+        } else {
+          let len = studentAttendance.attendance.length;
+          for (let i = 0; i < len; i++) {
+            let len1 = studentAttendance.attendance[i].historyOfAttendance.length;
+            for(let j = 0; j < len1; j++){
+              if(studentAttendance.attendance[i].historyOfAttendance[j].attendanceDate === date){
+                let obj = {
+                  registrationNumber: studentAttendance.attendance[i].registrationNumber,
+                  attendanceStatus: studentAttendance.attendance[i].historyOfAttendance[j].status
+                }
+                attendanceList.push(obj);
+                
+              }
+            }
+          }
+          res.send({attendanceList});
+        }
       }
     }
-  }
+  );
+  // for (var key in attendance) {
+  //   var studentName = Student.find(
+  //     { registrationNumber: key.registrationNumber },
+  //     { StudentName: 1 },
+  //     function (err, studentDetails) {}
+  //   );
+  //   for (var key1 in key.historyOfAttendance) {
+  //     if (key1.attendanceDate === date) {
+  //       let obj = {
+  //         registrationNumber: key.registrationNumber,
+  //         studentName: studentName,
+  //         attendanceStatus: key1.status,
+  //       };
+  //       attendanceList.push(obj);
+  //     } else {
+  //       res.send("Date doesn't match the Time slot given");
+  //     }
+  //   }
+  // }
 
-  res.send(attendanceList);
+  //res.send(attendanceList);
 });
 
 // Updates the database based on whether the student's scan
@@ -379,35 +408,34 @@ app.post("/markAttendance", function (req, res) {
               attendanceDate: date,
               status: "Present",
             };
-            attendanceList.push(obj);
+            await Course.findOneAndUpdate(
+              {
+                courseID: cID,
+                attendance: course.attendance[i].registrationNumber
+              },
+              {
+                // $push: {
+                //   attendance: {
+                //     $position: i,
+                //     $push:{
+                //       historyOfAttendance : obj
+                //     }
+                //   } 
+                // }
+              },
+              function (err, doc) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  res.send("Successfully updated");
+                }
+              }
+            );
           }
         }
       }
     });
-
-    Course.updateOne(
-      {
-        courseID: cID,
-        attendance: { $elemMatch: { registrationNumber: regNo } },
-      },
-      {
-        attendance: {
-          historyOfAttendance: {
-            $push: {
-              attendanceDate: date,
-              status: "Present",
-            },
-          },
-        },
-      },
-      function (err, doc) {
-        if (err) {
-          res.send(err);
-        } else {
-          res.send("Successfully updated");
-        }
-      }
-    );
+    
     // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
   } else {
   }
