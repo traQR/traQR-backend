@@ -400,7 +400,6 @@ app.post("/markAttendance", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        console.log(course);
         var len = course.attendance.length;
         for (var i = 0; i < len; i++) {
           if (course.attendance[i].registrationNumber === regNo) {
@@ -415,30 +414,83 @@ app.post("/markAttendance", function (req, res) {
               status: "Present"
             })
 
+            // deleting before pushing
+            Course.updateOne({ courseID: cID},
+              { $pull: { attendance: { registrationNumber: regNo } } }, function(err){
+                if(err){
+                  res.send(err);
+                }
+              }
+            );
+
+            // Adding updated object
             Course.updateOne(
-              {
-                courseID: cID
-              },
+              { courseID: cID },
               {
                 $push: {
                   attendance: obj
                 }
-              },
-              function (err, doc) {
+              }, function (err, doc) {
                 if (err) {
                   res.send(err);
                 } else {
-                  res.send(doc);
+                  // res.send(doc);
                 }
               }
             );
           }
         }
       }
+      res.send("Updated");
     });
-    
-    // Course.updateOne({courseID: cID}, {$set:{ attendance[index].registrationNumber }})
   } else {
+    Course.findOne({ courseID: cID }, async function (err, course) {
+      if (err) {
+        res.send(err);
+      } else {
+        var len = course.attendance.length;
+        for (var i = 0; i < len; i++) {
+          if (course.attendance[i].registrationNumber === regNo) {
+            
+            let obj = {
+              registrationNumber: regNo,
+              attendancePercentage: course.attendance[i].attendancePercentage,
+              historyOfAttendance: course.attendance[i].historyOfAttendance
+            };
+            obj.historyOfAttendance.push({
+              attendanceDate: date,
+              status: "Absent"
+            })
+
+            // deleting before pushing
+            Course.updateOne({ courseID: cID},
+              { $pull: { attendance: { registrationNumber: regNo } } }, function(err){
+                if(err){
+                  res.send(err);
+                }
+              }
+            );  
+
+            // Adding updated object
+            Course.updateOne(
+              { courseID: cID },
+              {
+                $push: {
+                  attendance: obj
+                }
+              }, function (err, doc) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  // res.send(doc);
+                }
+              }
+            );
+          }
+        }
+      }
+      res.send("Updated");
+    });
   }
 });
 
