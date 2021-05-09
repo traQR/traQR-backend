@@ -406,27 +406,6 @@ app.post("/faculty/attendance", function (req, res) {
       }
     }
   );
-  // for (var key in attendance) {
-  //   var studentName = Student.find(
-  //     { registrationNumber: key.registrationNumber },
-  //     { StudentName: 1 },
-  //     function (err, studentDetails) {}
-  //   );
-  //   for (var key1 in key.historyOfAttendance) {
-  //     if (key1.attendanceDate === date) {
-  //       let obj = {
-  //         registrationNumber: key.registrationNumber,
-  //         studentName: studentName,
-  //         attendanceStatus: key1.status,
-  //       };
-  //       attendanceList.push(obj);
-  //     } else {
-  //       res.send("Date doesn't match the Time slot given");
-  //     }
-  //   }
-  // }
-
-  //res.send(attendanceList);
 });
 
 // Updates the database based on whether the student's scan
@@ -447,11 +426,26 @@ app.post("/markAttendance", function (req, res) {
           res.status(404).send("Course ", cID, " not found");
         } else {
           var len = course.attendance.length;
+          let percent = 0;
+          let present = 1;
+          for(let i=0; i<len; i++){
+            if(course.attendance[i].registrationNumber === regNo){
+              let tot = course.attendance[i].historyOfAttendance.length;
+              
+              for (let k = 0; k < tot; k++) {
+                if (course.attendance[i].historyOfAttendance[k].status == "Present") {
+                  present++;
+                }
+              }
+              percent = (present/(tot+1)) * 100;
+            }
+          }
+
           for (var i = 0; i < len; i++) {
             if (course.attendance[i].registrationNumber === regNo) {
               let obj = {
                 registrationNumber: regNo,
-                attendancePercentage: course.attendance[i].attendancePercentage,
+                attendancePercentage: percent,
                 historyOfAttendance: course.attendance[i].historyOfAttendance,
               };
               obj.historyOfAttendance.push({
@@ -490,7 +484,8 @@ app.post("/markAttendance", function (req, res) {
           }
         }
       }
-      res.send("Updated student, marked as Present");
+      
+      res.write("Updated student, marked as Present");
     });
   } else {
     Course.findOne({ courseID: cID }, async function (err, course) {
@@ -501,11 +496,25 @@ app.post("/markAttendance", function (req, res) {
           res.status(404).send("Course ", cid, " not found");
         } else {
           var len = course.attendance.length;
+          let percent = 0;
+          let present = 0;
+          for(let i=0; i<len; i++){
+            if(course.attendance[i].registrationNumber === regNo){
+              let tot = course.attendance[i].historyOfAttendance.length;
+              
+              for (let k = 0; k < tot; k++) {
+                if (course.attendance[i].historyOfAttendance[k].status == "Present") {
+                  present++;
+                }
+              }
+              percent = (present/(tot+1)) * 100;
+            }
+          }
           for (var i = 0; i < len; i++) {
             if (course.attendance[i].registrationNumber === regNo) {
               let obj = {
                 registrationNumber: regNo,
-                attendancePercentage: course.attendance[i].attendancePercentage,
+                attendancePercentage: percent,
                 historyOfAttendance: course.attendance[i].historyOfAttendance,
               };
               obj.historyOfAttendance.push({
@@ -544,9 +553,40 @@ app.post("/markAttendance", function (req, res) {
           }
         }
       }
-      res.send("Updated student, marked as Absent");
+      res.write("Updated student, marked as Absent");
     });
   }
+
+  // Updating attendancePercentage
+  // Course.findOne({courseID: cID}, {attendance: 1}, function(err, attendance) {
+  //   if(err){
+  //     res.send(err);
+  //   } else {
+  //     if(attendance == null){
+  //       res.status(404).send("Course ", cID, " not found");
+  //     } else {
+  //       let len = attendance.length;
+  //       for(let i=0; i<len; i++){
+  //         if(attendance[i].registrationNumber === regNo){
+  //           let tot = attendance[j].historyOfAttendance.length;
+  //           let present = 0;
+
+  //           for (let k = 0; k < tot; k++) {
+  //             if (attendance[j].historyOfAttendance[k].status == "Present") {
+  //                 present++;
+  //             }
+  //           }
+  //           let percent = (present/tot) * 100;
+  //           attendance[i].attendancePercentage = percent;
+  //         }
+  //       }
+  //       attendance.save();
+  //     }
+  //   }
+
+  res.end("\nDone");
+  // });
+
 });
 
 // To add a new course to the database
