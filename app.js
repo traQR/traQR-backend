@@ -119,9 +119,10 @@ app.post("/newUser", function (req, res) {
     const user = new Student({
       registrationNumber: regNo,
       studentName: studentName,
-      coursesTaken: [],
+      coursesTaken: []
     });
     user.save();
+    res.send("Successfully inserted Student user");
   } else {
     const user = new Faculty({
       facultyID: facID,
@@ -129,8 +130,9 @@ app.post("/newUser", function (req, res) {
       coursesHandled: [],
     });
     user.save();
+    res.send("Successfully inserted Faculty user");
   }
-  res.send("Successfully inserted");
+  
 });
 
 // Retrieveing fields from Student object
@@ -308,23 +310,32 @@ app.post("/attendance-stats", function (req, res) {
     { courseID: cID },
     { attendance: 1 },
     async function (err, stats) {
-      var len = stats.attendance.length;
-      for (var i = 0; i < len; i++) {
-        await Student.findOne(
-          { registrationNumber: stats.attendance[i].registrationNumber },
-          { studentName: 1 },
-          function (err, asnap) {
-            // asnap = attendance student name and percentage
-            let obj = {
-              registrationNumber: stats.attendance[i].registrationNumber,
-              studentName: asnap.studentName,
-              attendancePercentage: stats.attendance[i].attendancePercentage,
-            };
-            attendanceList.push(obj);
-          }
-        );
+      if (err) {
+        res.send(err);
+      } else {
+        var len = stats.attendance.length;
+        for (var i = 0; i < len; i++) {
+          await Student.findOne(
+            { registrationNumber: stats.attendance[i].registrationNumber },
+            { studentName: 1 },
+            function (err, asnap) {
+              if (err) {
+                res.send(err);
+              } else {
+                // asnap = attendance student name and percentage
+                let obj = {
+                  registrationNumber: stats.attendance[i].registrationNumber,
+                  studentName: asnap.studentName,
+                  attendancePercentage:
+                    stats.attendance[i].attendancePercentage,
+                };
+                attendanceList.push(obj);
+              }
+            }
+          );
+        }
+        res.send(attendanceList);
       }
-      res.send(attendanceList);
     }
   );
 });
@@ -346,19 +357,25 @@ app.post("/faculty/attendance", function (req, res) {
         } else {
           let len = studentAttendance.attendance.length;
           for (let i = 0; i < len; i++) {
-            let len1 = studentAttendance.attendance[i].historyOfAttendance.length;
-            for(let j = 0; j < len1; j++){
-              if(studentAttendance.attendance[i].historyOfAttendance[j].attendanceDate === date){
+            let len1 =
+              studentAttendance.attendance[i].historyOfAttendance.length;
+            for (let j = 0; j < len1; j++) {
+              if (
+                studentAttendance.attendance[i].historyOfAttendance[j]
+                  .attendanceDate === date
+              ) {
                 let obj = {
-                  registrationNumber: studentAttendance.attendance[i].registrationNumber,
-                  attendanceStatus: studentAttendance.attendance[i].historyOfAttendance[j].status
-                }
+                  registrationNumber:
+                    studentAttendance.attendance[i].registrationNumber,
+                  attendanceStatus:
+                    studentAttendance.attendance[i].historyOfAttendance[j]
+                      .status,
+                };
                 attendanceList.push(obj);
-                
               }
             }
           }
-          res.send({attendanceList});
+          res.send({ attendanceList });
         }
       }
     }
@@ -403,21 +420,22 @@ app.post("/markAttendance", function (req, res) {
         var len = course.attendance.length;
         for (var i = 0; i < len; i++) {
           if (course.attendance[i].registrationNumber === regNo) {
-            
             let obj = {
               registrationNumber: regNo,
               attendancePercentage: course.attendance[i].attendancePercentage,
-              historyOfAttendance: course.attendance[i].historyOfAttendance
+              historyOfAttendance: course.attendance[i].historyOfAttendance,
             };
             obj.historyOfAttendance.push({
               attendanceDate: date,
-              status: "Present"
-            })
+              status: "Present",
+            });
 
             // deleting before pushing
-            Course.updateOne({ courseID: cID},
-              { $pull: { attendance: { registrationNumber: regNo } } }, function(err){
-                if(err){
+            Course.updateOne(
+              { courseID: cID },
+              { $pull: { attendance: { registrationNumber: regNo } } },
+              function (err) {
+                if (err) {
                   res.send(err);
                 }
               }
@@ -428,9 +446,10 @@ app.post("/markAttendance", function (req, res) {
               { courseID: cID },
               {
                 $push: {
-                  attendance: obj
-                }
-              }, function (err, doc) {
+                  attendance: obj,
+                },
+              },
+              function (err, doc) {
                 if (err) {
                   res.send(err);
                 } else {
@@ -451,34 +470,36 @@ app.post("/markAttendance", function (req, res) {
         var len = course.attendance.length;
         for (var i = 0; i < len; i++) {
           if (course.attendance[i].registrationNumber === regNo) {
-            
             let obj = {
               registrationNumber: regNo,
               attendancePercentage: course.attendance[i].attendancePercentage,
-              historyOfAttendance: course.attendance[i].historyOfAttendance
+              historyOfAttendance: course.attendance[i].historyOfAttendance,
             };
             obj.historyOfAttendance.push({
               attendanceDate: date,
-              status: "Absent"
-            })
+              status: "Absent",
+            });
 
             // deleting before pushing
-            Course.updateOne({ courseID: cID},
-              { $pull: { attendance: { registrationNumber: regNo } } }, function(err){
-                if(err){
+            Course.updateOne(
+              { courseID: cID },
+              { $pull: { attendance: { registrationNumber: regNo } } },
+              function (err) {
+                if (err) {
                   res.send(err);
                 }
               }
-            );  
+            );
 
             // Adding updated object
             Course.updateOne(
               { courseID: cID },
               {
                 $push: {
-                  attendance: obj
-                }
-              }, function (err, doc) {
+                  attendance: obj,
+                },
+              },
+              function (err, doc) {
                 if (err) {
                   res.send(err);
                 } else {
