@@ -454,38 +454,38 @@ app.post("/markAttendance", function (req, res) {
               });
 
               // deleting before pushing
-              Course.updateOne(
+              Course.findOneAndUpdate(
                 { courseID: cID },
                 { $pull: { attendance: { registrationNumber: regNo } } },
-                function (err) {
+                async function (err) {
                   if (err) {
                     res.send(err);
                   }
+                  else{
+                    Course.findOneAndUpdate(
+                      { courseID: cID },
+                      {
+                        $push: {
+                          attendance: obj,
+                        },
+                      },
+                      function (err, doc) {
+                        if (err) {
+                          res.send(err);
+                        } else {
+                          // res.send(doc);
+                        }
+                      }
+                    );
+                  }
                 }
               );
-
               // Adding updated object
-              Course.updateOne(
-                { courseID: cID },
-                {
-                  $push: {
-                    attendance: obj,
-                  },
-                },
-                function (err, doc) {
-                  if (err) {
-                    res.send(err);
-                  } else {
-                    // res.send(doc);
-                  }
-                }
-              );
             }
           }
         }
+        res.send("Updated student, marked as Present");
       }
-      
-      res.write("Updated student, marked as Present");
     });
   } else {
     Course.findOne({ courseID: cID }, async function (err, course) {
@@ -493,7 +493,7 @@ app.post("/markAttendance", function (req, res) {
         res.send(err);
       } else {
         if (course == null) {
-          res.status(404).send("Course ", cid, " not found");
+          res.status(404).send("Course ", cID, " not found");
         } else {
           var len = course.attendance.length;
           let percent = 0;
@@ -510,6 +510,7 @@ app.post("/markAttendance", function (req, res) {
               percent = (present/(tot+1)) * 100;
             }
           }
+
           for (var i = 0; i < len; i++) {
             if (course.attendance[i].registrationNumber === regNo) {
               let obj = {
@@ -523,43 +524,40 @@ app.post("/markAttendance", function (req, res) {
               });
 
               // deleting before pushing
-              Course.updateOne(
+              Course.findOneAndUpdate(
                 { courseID: cID },
                 { $pull: { attendance: { registrationNumber: regNo } } },
-                function (err) {
+                async function (err) {
                   if (err) {
                     res.send(err);
                   }
+                  else{
+                    Course.findOneAndUpdate(
+                      { courseID: cID },
+                      {
+                        $push: {
+                          attendance: obj,
+                        },
+                      },
+                      function (err, doc) {
+                        if (err) {
+                          res.send(err);
+                        } else {
+                          // res.send(doc);
+                        }
+                      }
+                    );
+                  }
                 }
               );
-
               // Adding updated object
-              Course.updateOne(
-                { courseID: cID },
-                {
-                  $push: {
-                    attendance: obj,
-                  },
-                },
-                function (err, doc) {
-                  if (err) {
-                    res.send(err);
-                  } else {
-                    // res.send(doc);
-                  }
-                }
-              );
             }
           }
         }
+        res.send("Updated student, marked as Absent");
       }
-      res.write("Updated student, marked as Absent");
     });
   }
-
-  res.end("\nDone");
-  // });
-
 });
 
 // To add a new course to the database
