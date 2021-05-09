@@ -557,33 +557,6 @@ app.post("/markAttendance", function (req, res) {
     });
   }
 
-  // Updating attendancePercentage
-  // Course.findOne({courseID: cID}, {attendance: 1}, function(err, attendance) {
-  //   if(err){
-  //     res.send(err);
-  //   } else {
-  //     if(attendance == null){
-  //       res.status(404).send("Course ", cID, " not found");
-  //     } else {
-  //       let len = attendance.length;
-  //       for(let i=0; i<len; i++){
-  //         if(attendance[i].registrationNumber === regNo){
-  //           let tot = attendance[j].historyOfAttendance.length;
-  //           let present = 0;
-
-  //           for (let k = 0; k < tot; k++) {
-  //             if (attendance[j].historyOfAttendance[k].status == "Present") {
-  //                 present++;
-  //             }
-  //           }
-  //           let percent = (present/tot) * 100;
-  //           attendance[i].attendancePercentage = percent;
-  //         }
-  //       }
-  //       attendance.save();
-  //     }
-  //   }
-
   res.end("\nDone");
   // });
 
