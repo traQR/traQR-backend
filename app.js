@@ -395,39 +395,40 @@ app.post("/markAttendance", function (req, res) {
   var date = req.body.date;
   var isPresent = req.body.status; // This is bool bitch
 
-  let attendanceList = [];
   if (isPresent) {
     Course.findOne({ courseID: cID }, async function (err, course) {
       if (err) {
         res.send(err);
       } else {
+        console.log(course);
         var len = course.attendance.length;
         for (var i = 0; i < len; i++) {
           if (course.attendance[i].registrationNumber === regNo) {
+            
             let obj = {
-              attendanceDate: date,
-              status: "Present",
+              registrationNumber: regNo,
+              attendancePercentage: course.attendance[i].attendancePercentage,
+              historyOfAttendance: course.attendance[i].historyOfAttendance
             };
-            await Course.findOneAndUpdate(
+            obj.historyOfAttendance.push({
+              attendanceDate: date,
+              status: "Present"
+            })
+
+            Course.updateOne(
               {
-                courseID: cID,
-                attendance: course.attendance[i].registrationNumber
+                courseID: cID
               },
               {
-                // $push: {
-                //   attendance: {
-                //     $position: i,
-                //     $push:{
-                //       historyOfAttendance : obj
-                //     }
-                //   } 
-                // }
+                $push: {
+                  attendance: obj
+                }
               },
               function (err, doc) {
                 if (err) {
                   res.send(err);
                 } else {
-                  res.send("Successfully updated");
+                  res.send(doc);
                 }
               }
             );
