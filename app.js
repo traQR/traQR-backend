@@ -119,7 +119,7 @@ app.post("/newUser", function (req, res) {
     const user = new Student({
       registrationNumber: regNo,
       studentName: studentName,
-      coursesTaken: []
+      coursesTaken: [],
     });
     user.save();
     res.send("Successfully inserted Student user");
@@ -132,7 +132,6 @@ app.post("/newUser", function (req, res) {
     user.save();
     res.send("Successfully inserted Faculty user");
   }
-  
 });
 
 // Retrieveing fields from Student object
@@ -145,7 +144,11 @@ app.post("/courses", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        res.send(studentCoursesTaken);
+        if (studentCoursesTaken == null) {
+          res.sendStatus(404);
+        } else {
+          res.send(studentCoursesTaken);
+        }
       }
     }
   );
@@ -163,7 +166,7 @@ app.post("/courses/courseID", function (req, res) {
         res.send(err);
       } else {
         if (courseInfo == null) {
-          res.sendStatus(404);
+          res.status(404).send(cid, " not found");
         } else {
           await Faculty.findOne(
             { facultyID: courseInfo.facultyID },
@@ -172,7 +175,9 @@ app.post("/courses/courseID", function (req, res) {
               if (err) {
               } else {
                 if (facultyInfo == null) {
-                  res.sendStatus(404);
+                  res
+                    .status(404)
+                    .send("faculty ", facultyInfo.facultyID, " not found");
                 } else {
                   let obj = {
                     courseID: courseInfo.courseID,
@@ -206,12 +211,16 @@ app.post("/courses/courseID/attendance", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        var i;
-        var len = tempAttendance.attendance.length;
+        if (tempAttendance == null) {
+          res.status(404).send(cid, " not found");
+        } else {
+          var i;
+          var len = tempAttendance.attendance.length;
 
-        for (i = 0; i < len; i++) {
-          if (tempAttendance.attendance[i].registrationNumber === regNo) {
-            res.send(tempAttendance.attendance[i]);
+          for (i = 0; i < len; i++) {
+            if (tempAttendance.attendance[i].registrationNumber === regNo) {
+              res.send(tempAttendance.attendance[i]);
+            }
           }
         }
       }
@@ -231,52 +240,57 @@ app.post("/attendance", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        var len = studentCourses.coursesTaken.length;
-        for (var i = 0; i < len; i++) {
-          await Course.findOne(
-            { courseID: studentCourses.coursesTaken[i].courseID },
-            { courseID: 1, courseName: 1, slot: 1, attendance: 1 },
-            function (err, attendanceSummary) {
-              if (err) {
-                res.send(err);
-              } else {
-                var len1 = attendanceSummary.attendance.length;
-                for (var j = 0; j < len1; j++) {
-                  if (
-                    attendanceSummary.attendance[j].registrationNumber === regNo
-                  ) {
-                    //Calculating attendance percentage
-                    let tot =
-                      attendanceSummary.attendance[j].historyOfAttendance
-                        .length;
-                    let present = 0;
+        if (studentCourses == null) {
+          res.status(404).send("Student of ", regNo, " doesnt exist");
+        } else {
+          var len = studentCourses.coursesTaken.length;
+          for (var i = 0; i < len; i++) {
+            await Course.findOne(
+              { courseID: studentCourses.coursesTaken[i].courseID },
+              { courseID: 1, courseName: 1, slot: 1, attendance: 1 },
+              function (err, attendanceSummary) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  var len1 = attendanceSummary.attendance.length;
+                  for (var j = 0; j < len1; j++) {
+                    if (
+                      attendanceSummary.attendance[j].registrationNumber ===
+                      regNo
+                    ) {
+                      //Calculating attendance percentage
+                      let tot =
+                        attendanceSummary.attendance[j].historyOfAttendance
+                          .length;
+                      let present = 0;
 
-                    for (let k = 0; k < tot; k++) {
-                      if (
-                        attendanceSummary.attendance[j].historyOfAttendance[k]
-                          .status == "Present"
-                      ) {
-                        present++;
+                      for (let k = 0; k < tot; k++) {
+                        if (
+                          attendanceSummary.attendance[j].historyOfAttendance[k]
+                            .status == "Present"
+                        ) {
+                          present++;
+                        }
                       }
+                      let absent = tot - present;
+                      let obj = {
+                        courseID: attendanceSummary.courseID,
+                        courseName: attendanceSummary.courseName,
+                        slot: attendanceSummary.slot,
+                        attendancePercent:
+                          attendanceSummary.attendance[j].attendancePercentage,
+                        present: present,
+                        absent: absent,
+                      };
+                      percentageList.push(obj);
                     }
-                    let absent = tot - present;
-                    let obj = {
-                      courseID: attendanceSummary.courseID,
-                      courseName: attendanceSummary.courseName,
-                      slot: attendanceSummary.slot,
-                      attendancePercent:
-                        attendanceSummary.attendance[j].attendancePercentage,
-                      present: present,
-                      absent: absent,
-                    };
-                    percentageList.push(obj);
                   }
                 }
               }
-            }
-          );
+            );
+          }
+          res.send({ percentageList });
         }
-        res.send({ percentageList });
       }
     }
   );
@@ -292,7 +306,7 @@ app.post("/faculty", function (req, res) {
         res.send(err);
       } else {
         if (teacherCourses == null) {
-          res.sendStatus(404);
+          res.status(404).send("Faculty information not found in database");
         } else {
           res.send(teacherCourses);
         }
@@ -313,28 +327,39 @@ app.post("/attendance-stats", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        var len = stats.attendance.length;
-        for (var i = 0; i < len; i++) {
-          await Student.findOne(
-            { registrationNumber: stats.attendance[i].registrationNumber },
-            { studentName: 1 },
-            function (err, asnap) {
-              if (err) {
-                res.send(err);
-              } else {
-                // asnap = attendance student name and percentage
-                let obj = {
-                  registrationNumber: stats.attendance[i].registrationNumber,
-                  studentName: asnap.studentName,
-                  attendancePercentage:
-                    stats.attendance[i].attendancePercentage,
-                };
-                attendanceList.push(obj);
+        if (stats == null) {
+          res.status(404).send("Course ", cID, " doesnt exist in database");
+        } else {
+          var len = stats.attendance.length;
+          for (var i = 0; i < len; i++) {
+            await Student.findOne(
+              { registrationNumber: stats.attendance[i].registrationNumber },
+              { studentName: 1 },
+              function (err, asnap) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  if (asnap == null) {
+                    res
+                      .status(404)
+                      .send("Student details not found in database");
+                  } else {
+                    // asnap = attendance student name and percentage
+                    let obj = {
+                      registrationNumber:
+                        stats.attendance[i].registrationNumber,
+                      studentName: asnap.studentName,
+                      attendancePercentage:
+                        stats.attendance[i].attendancePercentage,
+                    };
+                    attendanceList.push(obj);
+                  }
+                }
               }
-            }
-          );
+            );
+          }
+          res.send(attendanceList);
         }
-        res.send(attendanceList);
       }
     }
   );
@@ -342,6 +367,7 @@ app.post("/attendance-stats", function (req, res) {
 
 // Returns studentName and attendanceStatus for a particular course on a particular date
 app.post("/faculty/attendance", function (req, res) {
+  //TODO: Have to provide studentName to frontend (NOT DONE)
   var cID = req.body.courseID;
   var date = req.body.date; //"DD-MM-YY"
   let attendanceList = [];
@@ -353,7 +379,7 @@ app.post("/faculty/attendance", function (req, res) {
         res.send(err);
       } else {
         if (studentAttendance == null) {
-          res.sendStatus(404);
+          res.status(404).send("Course ", cID, " not found");
         } else {
           let len = studentAttendance.attendance.length;
           for (let i = 0; i < len; i++) {
@@ -417,100 +443,108 @@ app.post("/markAttendance", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        var len = course.attendance.length;
-        for (var i = 0; i < len; i++) {
-          if (course.attendance[i].registrationNumber === regNo) {
-            let obj = {
-              registrationNumber: regNo,
-              attendancePercentage: course.attendance[i].attendancePercentage,
-              historyOfAttendance: course.attendance[i].historyOfAttendance,
-            };
-            obj.historyOfAttendance.push({
-              attendanceDate: date,
-              status: "Present",
-            });
+        if (course == null) {
+          res.status(404).send("Course ", cID, " not found");
+        } else {
+          var len = course.attendance.length;
+          for (var i = 0; i < len; i++) {
+            if (course.attendance[i].registrationNumber === regNo) {
+              let obj = {
+                registrationNumber: regNo,
+                attendancePercentage: course.attendance[i].attendancePercentage,
+                historyOfAttendance: course.attendance[i].historyOfAttendance,
+              };
+              obj.historyOfAttendance.push({
+                attendanceDate: date,
+                status: "Present",
+              });
 
-            // deleting before pushing
-            Course.updateOne(
-              { courseID: cID },
-              { $pull: { attendance: { registrationNumber: regNo } } },
-              function (err) {
-                if (err) {
-                  res.send(err);
+              // deleting before pushing
+              Course.updateOne(
+                { courseID: cID },
+                { $pull: { attendance: { registrationNumber: regNo } } },
+                function (err) {
+                  if (err) {
+                    res.send(err);
+                  }
                 }
-              }
-            );
+              );
 
-            // Adding updated object
-            Course.updateOne(
-              { courseID: cID },
-              {
-                $push: {
-                  attendance: obj,
+              // Adding updated object
+              Course.updateOne(
+                { courseID: cID },
+                {
+                  $push: {
+                    attendance: obj,
+                  },
                 },
-              },
-              function (err, doc) {
-                if (err) {
-                  res.send(err);
-                } else {
-                  // res.send(doc);
+                function (err, doc) {
+                  if (err) {
+                    res.send(err);
+                  } else {
+                    // res.send(doc);
+                  }
                 }
-              }
-            );
+              );
+            }
           }
         }
       }
-      res.send("Updated");
+      res.send("Updated student, marked as Present");
     });
   } else {
     Course.findOne({ courseID: cID }, async function (err, course) {
       if (err) {
         res.send(err);
       } else {
-        var len = course.attendance.length;
-        for (var i = 0; i < len; i++) {
-          if (course.attendance[i].registrationNumber === regNo) {
-            let obj = {
-              registrationNumber: regNo,
-              attendancePercentage: course.attendance[i].attendancePercentage,
-              historyOfAttendance: course.attendance[i].historyOfAttendance,
-            };
-            obj.historyOfAttendance.push({
-              attendanceDate: date,
-              status: "Absent",
-            });
+        if (course == null) {
+          res.status(404).send("Course ", cid, " not found");
+        } else {
+          var len = course.attendance.length;
+          for (var i = 0; i < len; i++) {
+            if (course.attendance[i].registrationNumber === regNo) {
+              let obj = {
+                registrationNumber: regNo,
+                attendancePercentage: course.attendance[i].attendancePercentage,
+                historyOfAttendance: course.attendance[i].historyOfAttendance,
+              };
+              obj.historyOfAttendance.push({
+                attendanceDate: date,
+                status: "Absent",
+              });
 
-            // deleting before pushing
-            Course.updateOne(
-              { courseID: cID },
-              { $pull: { attendance: { registrationNumber: regNo } } },
-              function (err) {
-                if (err) {
-                  res.send(err);
+              // deleting before pushing
+              Course.updateOne(
+                { courseID: cID },
+                { $pull: { attendance: { registrationNumber: regNo } } },
+                function (err) {
+                  if (err) {
+                    res.send(err);
+                  }
                 }
-              }
-            );
+              );
 
-            // Adding updated object
-            Course.updateOne(
-              { courseID: cID },
-              {
-                $push: {
-                  attendance: obj,
+              // Adding updated object
+              Course.updateOne(
+                { courseID: cID },
+                {
+                  $push: {
+                    attendance: obj,
+                  },
                 },
-              },
-              function (err, doc) {
-                if (err) {
-                  res.send(err);
-                } else {
-                  // res.send(doc);
+                function (err, doc) {
+                  if (err) {
+                    res.send(err);
+                  } else {
+                    // res.send(doc);
+                  }
                 }
-              }
-            );
+              );
+            }
           }
         }
       }
-      res.send("Updated");
+      res.send("Updated student, marked as Absent");
     });
   }
 });
@@ -614,34 +648,39 @@ app.post("/doubts", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        var len = markedDoubts.doubts.length;
-        var i;
-        for (i = 0; i < len; i++) {
-          await Course.findOne(
-            { courseID: markedDoubts.doubts[i].courseID },
-            { courseID: 1, courseName: 1, slot: 1 },
-            function (err, cnas) {
-              //cnas = course name and slot
-              if (err) {
-                res.send(err);
-              } else {
-                var index = 0;
-                let obj = {
-                  courseID: cnas.courseID,
-                  courseName: cnas.courseName,
-                  doubt: markedDoubts.doubts[index].doubt,
-                };
-                doubtsList.push(obj);
-                index++;
+        if (markedDoubts == null) {
+          res.status(404).send("Faculty ", facID, " is not found in database");
+        } else {
+          var len = markedDoubts.doubts.length;
+          var i;
+          for (i = 0; i < len; i++) {
+            await Course.findOne(
+              { courseID: markedDoubts.doubts[i].courseID },
+              { courseID: 1, courseName: 1, slot: 1 },
+              function (err, cnas) {
+                //cnas = course name and slot
+                if (err) {
+                  res.send(err);
+                } else {
+                  var index = 0;
+                  let obj = {
+                    courseID: cnas.courseID,
+                    courseName: cnas.courseName,
+                    doubt: markedDoubts.doubts[index].doubt,
+                  };
+                  doubtsList.push(obj);
+                  index++;
+                }
               }
-            }
-          );
+            );
+          }
+          res.send(doubtsList);
         }
-        res.send(doubtsList);
       }
     }
   );
 });
+
 
 //Server port for Heroku
 //Server port for localhost:3000
