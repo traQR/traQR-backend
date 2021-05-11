@@ -438,7 +438,7 @@ app.post("/faculty/attendance", function (req, res) {
 // Updates the database based on whether the student's scan
 // was valid or invalid
 app.post("/markAttendance", function (req, res) {
-  var facID = req.body.facID; // This is in da QR
+  // var facID = req.body.facID; // This is in da QR
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
   var date = req.body.date;
