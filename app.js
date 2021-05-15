@@ -173,7 +173,7 @@ app.post("/courses/courseID", function (req, res) {
         res.send(err);
       } else {
         if (courseInfo == null) {
-          res.status(404).send(cID, " not found");
+          res.sendStatus(404)
         } else {
           await Faculty.findOne({
               facultyID: courseInfo.facultyID
@@ -184,9 +184,7 @@ app.post("/courses/courseID", function (req, res) {
             function (err, facultyInfo) {
               if (err) {} else {
                 if (facultyInfo == null) {
-                  res
-                    .status(404)
-                    .send("faculty not found");
+                  res.sendStatus(404);
                 } else {
                   let obj = {
                     courseID: courseInfo.courseID,
@@ -225,7 +223,7 @@ app.post("/courses/courseID/attendance", function (req, res) {
         res.send(err);
       } else {
         if (tempAttendance == null) {
-          res.status(404).send(cid, " not found");
+          res.sendStatus(404);
         } else {
           var i;
           var len = tempAttendance.attendance.length;
@@ -256,7 +254,7 @@ app.post("/attendance", function (req, res) {
         res.send(err);
       } else {
         if (studentCourses == null) {
-          res.status(404).send("Student of ", regNo, " doesnt exist");
+          res.sendStatus(404);
         } else {
           var len = studentCourses.coursesTaken.length;
           for (var i = 0; i < len; i++) {
@@ -329,7 +327,7 @@ app.post("/faculty", function (req, res) {
         res.send(err);
       } else {
         if (teacherCourses == null) {
-          res.status(404).send("Faculty information not found in database");
+          res.sendStatus(404);
         } else {
           res.send(teacherCourses);
         }
@@ -353,7 +351,7 @@ app.post("/attendance-stats", function (req, res) {
         res.send(err);
       } else {
         if (stats == null) {
-          res.status(404).send("Course ", cID, " doesnt exist in database");
+          res.sendStatus(404);
         } else {
           var len = stats.attendance.length;
           for (var i = 0; i < len; i++) {
@@ -367,9 +365,7 @@ app.post("/attendance-stats", function (req, res) {
                   res.send(err);
                 } else {
                   if (asnap == null) {
-                    res
-                      .status(404)
-                      .send("Student details not found in database");
+                    res.sendStatus(404);
                   } else {
                     // asnap = attendance student name and percentage
                     let obj = {
@@ -406,7 +402,7 @@ app.post("/faculty/attendance", function (req, res) {
         res.send(err);
       } else {
         if (studentAttendance == null) {
-          res.status(404).send("Course ", cID, " not found");
+          res.sendStatus(404);
         } else {
           let len = studentAttendance.attendance.length;
           for (let i = 0; i < len; i++) {
@@ -452,7 +448,7 @@ app.post("/markAttendance", function (req, res) {
         res.send(err);
       } else {
         if (course == null) {
-          res.status(404).send("Course ", cID, " not found");
+          res.sendStatus(404);
         } else {
           var len = course.attendance.length;
           let percent = 0;
@@ -529,7 +525,7 @@ app.post("/markAttendance", function (req, res) {
         res.send(err);
       } else {
         if (course == null) {
-          res.status(404).send("Course ", cID, " not found");
+          res.sendStatus(404);
         } else {
           var len = course.attendance.length;
           let percent = 0;
@@ -710,7 +706,7 @@ app.post("/addStudent", function (req, res) {
         }
 
         if (duplicate) {
-          res.status(400).send("You have already been added to this course.");
+          res.send("Inserting duplicate course, rejected request");
         } else {
           let obj = {
             courseID: cID,
@@ -762,7 +758,7 @@ app.post("/doubts", function (req, res) {
         res.send(err);
       } else {
         if (markedDoubts == null) {
-          res.status(404).send("Faculty ", facID, " is not found in database");
+          res.sendStatus(404);
         } else {
           var len = markedDoubts.doubts.length;
           var i;
