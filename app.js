@@ -598,14 +598,14 @@ app.post("/markAttendance", function (req, res) {
 });
 
 // To add a new course to the database
-app.post("/newCourse", async function (req, res) {
+app.post("/newCourse", function (req, res) {
   let facID = req.body.facultyID;
   let cName = req.body.courseName;
   let slot = req.body.slot;
 
   let newCourseID = uuidv4();
 
-  await Course.find({
+  Course.find({
       facultyID: facID
     }, {
       courseName: 1,
@@ -614,7 +614,7 @@ app.post("/newCourse", async function (req, res) {
 
     async (err, checkCourse) => {
       if (err) {
-        res.write(err);
+        res.send(err);
       } else {
         let duplicate = false;
 
@@ -645,7 +645,7 @@ app.post("/newCourse", async function (req, res) {
           //save the new course
           newCourse.save((err) => {
             if (!err) {
-              console.log("Updated successfully");
+              // console.log("Updated successfully");
             } else {
               res.send(err);
             }
@@ -667,7 +667,7 @@ app.post("/newCourse", async function (req, res) {
               if (err) {
                 res.send(err);
               } else {
-                console.log(result);
+                // console.log(result);
                 // res.write("Updated faculty schema Successfully");
               }
             }
