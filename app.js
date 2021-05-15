@@ -173,7 +173,7 @@ app.post("/courses/courseID", function (req, res) {
         res.send(err);
       } else {
         if (courseInfo == null) {
-          res.status(404).send(cid, " not found");
+          res.status(404).send(cID, " not found");
         } else {
           await Faculty.findOne({
               facultyID: courseInfo.facultyID
@@ -186,7 +186,7 @@ app.post("/courses/courseID", function (req, res) {
                 if (facultyInfo == null) {
                   res
                     .status(404)
-                    .send("faculty ", facultyInfo.facultyID, " not found");
+                    .send("faculty not found");
                 } else {
                   let obj = {
                     courseID: courseInfo.courseID,
