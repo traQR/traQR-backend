@@ -148,7 +148,11 @@ app.post("/getDetails", function (req, res) {
         if (err) {
           res.send(err);
         } else {
-          res.send(details);
+          if(details == null){
+            res.sendStatus(404);
+          }else{
+            res.send(details);
+          }
         }
       }
     );
@@ -160,7 +164,11 @@ app.post("/getDetails", function (req, res) {
         if (err) {
           res.send(err);
         } else {
-          res.send(details);
+          if(details == null){
+            res.sendStatus(404);
+          }else{
+            res.send(details);
+          }
         }
       }
     );
