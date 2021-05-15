@@ -137,15 +137,30 @@ app.post("/newUser", function (req, res) {
   }
 });
 
-//Get student details route regNo
+//getDetails get details of student or faculty based on isStudent
 app.post("/getDetails", function(req, res){
   let { isStudent, regNo, facID } = req.body;
   if(isStudent){
-    Student.findOne()
+    Student.findOne({registrationNumber: regNo},{registrationNumber: 1, studentName: 1}, function(err, details){
+        if(err){
+          res.send(err);
+        }
+        else{
+          res.send(details);
+        }
+    });
   }
-})
-
-//Get faculty details route from facID
+  else{
+    Faculty.findOne({facultyID: facID},{facultyID: 1, facultyName: 1}, function(err, details){
+      if(err){
+        res.send(err);
+      }
+      else{
+        res.send(details);
+      }
+  });
+  }
+});
 
 // Retrieveing fields from Student object
 app.post("/courses", function (req, res) {
