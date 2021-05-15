@@ -7,9 +7,7 @@ var cors = require("cors");
 
 const admin = require("firebase-admin");
 
-const {
-  v4: uuidv4
-} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
@@ -43,9 +41,10 @@ app.get("/traqr", function (req, res) {
 const mongoose = require("mongoose");
 
 mongoose.connect(
-  "mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB", {
+  "mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB",
+  {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   }
 );
 
@@ -59,41 +58,51 @@ const courseSchema = new mongoose.Schema({
   courseName: String,
   slot: String,
   facultyID: String,
-  attendance: [{
-    registrationNumber: String,
-    attendancePercentage: Number,
-    historyOfAttendance: [{
-      attendanceDate: String,
-      status: String,
-    }, ],
-  }, ],
+  attendance: [
+    {
+      registrationNumber: String,
+      attendancePercentage: Number,
+      historyOfAttendance: [
+        {
+          attendanceDate: String,
+          status: String,
+        },
+      ],
+    },
+  ],
 });
 
 const studentSchema = new mongoose.Schema({
   registrationNumber: String,
   studentName: String,
-  coursesTaken: [{
-    courseID: String,
-    courseName: String,
-    slot: String,
-  }, ],
+  coursesTaken: [
+    {
+      courseID: String,
+      courseName: String,
+      slot: String,
+    },
+  ],
 });
 
 const facultySchema = new mongoose.Schema({
   facultyID: String,
   facultyName: String,
-  coursesHandled: [{
-    courseID: String,
-    courseName: String
-  }, ],
+  coursesHandled: [
+    {
+      courseID: String,
+      courseName: String,
+    },
+  ],
 });
 
 const doubtSchema = new mongoose.Schema({
   facultyID: String,
-  doubts: [{
-    courseID: String,
-    doubt: String,
-  }, ],
+  doubts: [
+    {
+      courseID: String,
+      doubt: String,
+    },
+  ],
 });
 
 const Student = mongoose.model("Student", studentSchema);
@@ -108,13 +117,7 @@ const Doubts = mongoose.model("Doubts", doubtSchema);
 
 // To create new user
 app.post("/newUser", function (req, res) {
-  let {
-    isStudent,
-    studentName,
-    regNo,
-    facID,
-    facultyName
-  } = req.body;
+  let { isStudent, studentName, regNo, facID, facultyName } = req.body;
   if (isStudent) {
     const user = new Student({
       registrationNumber: regNo,
@@ -137,10 +140,12 @@ app.post("/newUser", function (req, res) {
 // Retrieveing fields from Student object
 app.post("/courses", function (req, res) {
   var regNo = req.body.regNo;
-  Student.find({
-      registrationNumber: regNo
-    }, {
-      coursesTaken: 1
+  Student.find(
+    {
+      registrationNumber: regNo,
+    },
+    {
+      coursesTaken: 1,
     },
     function (err, studentCoursesTaken) {
       if (err) {
@@ -160,29 +165,34 @@ app.post("/courses", function (req, res) {
 app.post("/courses/courseID", function (req, res) {
   var cID = req.body.courseID;
   let info = [];
-  Course.findOne({
-      courseID: cID
-    }, {
+  Course.findOne(
+    {
+      courseID: cID,
+    },
+    {
       courseID: 1,
       courseName: 1,
       slot: 1,
-      facultyID: 1
+      facultyID: 1,
     },
     async function (err, courseInfo) {
       if (err) {
         res.send(err);
       } else {
         if (courseInfo == null) {
-          res.sendStatus(404)
+          res.sendStatus(404);
         } else {
-          await Faculty.findOne({
-              facultyID: courseInfo.facultyID
-            }, {
+          await Faculty.findOne(
+            {
+              facultyID: courseInfo.facultyID,
+            },
+            {
               facultyID: 1,
-              facultyName: 1
+              facultyName: 1,
             },
             function (err, facultyInfo) {
-              if (err) {} else {
+              if (err) {
+              } else {
                 if (facultyInfo == null) {
                   res.sendStatus(404);
                 } else {
@@ -195,7 +205,7 @@ app.post("/courses/courseID", function (req, res) {
                   };
                   info.push(obj);
                   res.send({
-                    info: obj
+                    info: obj,
                   });
                 }
               }
@@ -213,10 +223,12 @@ app.post("/courses/courseID/attendance", function (req, res) {
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
 
-  Course.findOne({
-      courseID: cID
-    }, {
-      attendance: 1
+  Course.findOne(
+    {
+      courseID: cID,
+    },
+    {
+      attendance: 1,
     },
     function (err, tempAttendance) {
       if (err) {
@@ -244,10 +256,12 @@ app.post("/attendance", function (req, res) {
   var regNo = req.body.regNo;
   var percentageList = [];
 
-  Student.findOne({
-      registrationNumber: regNo
-    }, {
-      coursesTaken: 1
+  Student.findOne(
+    {
+      registrationNumber: regNo,
+    },
+    {
+      coursesTaken: 1,
     },
     async function (err, studentCourses) {
       if (err) {
@@ -258,13 +272,15 @@ app.post("/attendance", function (req, res) {
         } else {
           var len = studentCourses.coursesTaken.length;
           for (var i = 0; i < len; i++) {
-            await Course.findOne({
-                courseID: studentCourses.coursesTaken[i].courseID
-              }, {
+            await Course.findOne(
+              {
+                courseID: studentCourses.coursesTaken[i].courseID,
+              },
+              {
                 courseID: 1,
                 courseName: 1,
                 slot: 1,
-                attendance: 1
+                attendance: 1,
               },
               function (err, attendanceSummary) {
                 if (err) {
@@ -279,13 +295,13 @@ app.post("/attendance", function (req, res) {
                       //Calculating attendance percentage
                       let tot =
                         attendanceSummary.attendance[j].historyOfAttendance
-                        .length;
+                          .length;
                       let present = 0;
 
                       for (let k = 0; k < tot; k++) {
                         if (
                           attendanceSummary.attendance[j].historyOfAttendance[k]
-                          .status == "Present"
+                            .status == "Present"
                         ) {
                           present++;
                         }
@@ -295,7 +311,8 @@ app.post("/attendance", function (req, res) {
                         courseID: attendanceSummary.courseID,
                         courseName: attendanceSummary.courseName,
                         slot: attendanceSummary.slot,
-                        attendancePercent: attendanceSummary.attendance[j].attendancePercentage,
+                        attendancePercent:
+                          attendanceSummary.attendance[j].attendancePercentage,
                         present: present,
                         absent: absent,
                       };
@@ -307,7 +324,7 @@ app.post("/attendance", function (req, res) {
             );
           }
           res.send({
-            percentageList
+            percentageList,
           });
         }
       }
@@ -317,10 +334,12 @@ app.post("/attendance", function (req, res) {
 
 // Send teacherCourses
 app.post("/faculty", function (req, res) {
-  Faculty.findOne({
-      facultyID: req.body.facID
-    }, {
-      coursesHandled: 1
+  Faculty.findOne(
+    {
+      facultyID: req.body.facID,
+    },
+    {
+      coursesHandled: 1,
     },
     function (err, teacherCourses) {
       if (err) {
@@ -341,10 +360,12 @@ app.post("/attendance-stats", function (req, res) {
   var cID = req.body.courseID;
   let attendanceList = [];
 
-  Course.findOne({
-      courseID: cID
-    }, {
-      attendance: 1
+  Course.findOne(
+    {
+      courseID: cID,
+    },
+    {
+      attendance: 1,
     },
     async function (err, stats) {
       if (err) {
@@ -355,10 +376,12 @@ app.post("/attendance-stats", function (req, res) {
         } else {
           var len = stats.attendance.length;
           for (var i = 0; i < len; i++) {
-            await Student.findOne({
-                registrationNumber: stats.attendance[i].registrationNumber
-              }, {
-                studentName: 1
+            await Student.findOne(
+              {
+                registrationNumber: stats.attendance[i].registrationNumber,
+              },
+              {
+                studentName: 1,
               },
               function (err, asnap) {
                 if (err) {
@@ -369,9 +392,11 @@ app.post("/attendance-stats", function (req, res) {
                   } else {
                     // asnap = attendance student name and percentage
                     let obj = {
-                      registrationNumber: stats.attendance[i].registrationNumber,
+                      registrationNumber:
+                        stats.attendance[i].registrationNumber,
                       studentName: asnap.studentName,
-                      attendancePercentage: stats.attendance[i].attendancePercentage,
+                      attendancePercentage:
+                        stats.attendance[i].attendancePercentage,
                     };
                     attendanceList.push(obj);
                   }
@@ -392,10 +417,12 @@ app.post("/faculty/attendance", function (req, res) {
   var cID = req.body.courseID;
   var date = req.body.date; //"DD-MM-YY"
   let attendanceList = [];
-  Course.findOne({
-      courseID: cID
-    }, {
-      attendance: 1
+  Course.findOne(
+    {
+      courseID: cID,
+    },
+    {
+      attendance: 1,
     },
     async function (err, studentAttendance) {
       if (err) {
@@ -411,19 +438,21 @@ app.post("/faculty/attendance", function (req, res) {
             for (let j = 0; j < len1; j++) {
               if (
                 studentAttendance.attendance[i].historyOfAttendance[j]
-                .attendanceDate === date
+                  .attendanceDate === date
               ) {
                 let obj = {
-                  registrationNumber: studentAttendance.attendance[i].registrationNumber,
-                  attendanceStatus: studentAttendance.attendance[i].historyOfAttendance[j]
-                    .status,
+                  registrationNumber:
+                    studentAttendance.attendance[i].registrationNumber,
+                  attendanceStatus:
+                    studentAttendance.attendance[i].historyOfAttendance[j]
+                      .status,
                 };
                 attendanceList.push(obj);
               }
             }
           }
           res.send({
-            attendanceList
+            attendanceList,
           });
         }
       }
@@ -441,159 +470,179 @@ app.post("/markAttendance", function (req, res) {
   var isPresent = req.body.status; // This is bool bitch
 
   if (isPresent) {
-    Course.findOne({
-      courseID: cID
-    }, async function (err, course) {
-      if (err) {
-        res.send(err);
-      } else {
-        if (course == null) {
-          res.sendStatus(404);
+    Course.findOne(
+      {
+        courseID: cID,
+      },
+      async function (err, course) {
+        if (err) {
+          res.send(err);
         } else {
-          var len = course.attendance.length;
-          let percent = 0;
-          let present = 1;
-          for (let i = 0; i < len; i++) {
-            if (course.attendance[i].registrationNumber === regNo) {
-              let tot = course.attendance[i].historyOfAttendance.length;
+          if (course == null) {
+            res.sendStatus(404);
+          } else {
+            var len = course.attendance.length;
+            let percent = 0;
+            let present = 1;
+            for (let i = 0; i < len; i++) {
+              if (course.attendance[i].registrationNumber === regNo) {
+                let tot = course.attendance[i].historyOfAttendance.length;
 
-              for (let k = 0; k < tot; k++) {
-                if (course.attendance[i].historyOfAttendance[k].status == "Present") {
-                  present++;
+                for (let k = 0; k < tot; k++) {
+                  if (
+                    course.attendance[i].historyOfAttendance[k].status ==
+                    "Present"
+                  ) {
+                    present++;
+                  }
                 }
+                percent = (present / (tot + 1)) * 100;
               }
-              percent = (present / (tot + 1)) * 100;
             }
-          }
 
-          for (var i = 0; i < len; i++) {
-            if (course.attendance[i].registrationNumber === regNo) {
-              let obj = {
-                registrationNumber: regNo,
-                attendancePercentage: percent,
-                historyOfAttendance: course.attendance[i].historyOfAttendance,
-              };
-              obj.historyOfAttendance.push({
-                attendanceDate: date,
-                status: "Present",
-              });
+            for (var i = 0; i < len; i++) {
+              if (course.attendance[i].registrationNumber === regNo) {
+                let obj = {
+                  registrationNumber: regNo,
+                  attendancePercentage: percent,
+                  historyOfAttendance: course.attendance[i].historyOfAttendance,
+                };
+                obj.historyOfAttendance.push({
+                  attendanceDate: date,
+                  status: "Present",
+                });
 
-              // deleting before pushing
-              Course.findOneAndUpdate({
-                  courseID: cID
-                }, {
-                  $pull: {
-                    attendance: {
-                      registrationNumber: regNo
+                // deleting before pushing
+                Course.findOneAndUpdate(
+                  {
+                    courseID: cID,
+                  },
+                  {
+                    $pull: {
+                      attendance: {
+                        registrationNumber: regNo,
+                      },
+                    },
+                  },
+                  async function (err) {
+                    if (err) {
+                      res.send(err);
+                    } else {
+                      Course.findOneAndUpdate(
+                        {
+                          courseID: cID,
+                        },
+                        {
+                          $push: {
+                            attendance: obj,
+                          },
+                        },
+                        function (err, doc) {
+                          if (err) {
+                            res.send(err);
+                          } else {
+                            // res.send(doc);
+                          }
+                        }
+                      );
                     }
                   }
-                },
-                async function (err) {
-                  if (err) {
-                    res.send(err);
-                  } else {
-                    Course.findOneAndUpdate({
-                        courseID: cID
-                      }, {
-                        $push: {
-                          attendance: obj,
-                        },
-                      },
-                      function (err, doc) {
-                        if (err) {
-                          res.send(err);
-                        } else {
-                          // res.send(doc);
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-              // Adding updated object
+                );
+                // Adding updated object
+              }
             }
           }
+          res.send("Updated student, marked as Present");
         }
-        res.send("Updated student, marked as Present");
       }
-    });
+    );
   } else {
-    Course.findOne({
-      courseID: cID
-    }, async function (err, course) {
-      if (err) {
-        res.send(err);
-      } else {
-        if (course == null) {
-          res.sendStatus(404);
+    Course.findOne(
+      {
+        courseID: cID,
+      },
+      async function (err, course) {
+        if (err) {
+          res.send(err);
         } else {
-          var len = course.attendance.length;
-          let percent = 0;
-          let present = 0;
-          for (let i = 0; i < len; i++) {
-            if (course.attendance[i].registrationNumber === regNo) {
-              let tot = course.attendance[i].historyOfAttendance.length;
+          if (course == null) {
+            res.sendStatus(404);
+          } else {
+            var len = course.attendance.length;
+            let percent = 0;
+            let present = 0;
+            for (let i = 0; i < len; i++) {
+              if (course.attendance[i].registrationNumber === regNo) {
+                let tot = course.attendance[i].historyOfAttendance.length;
 
-              for (let k = 0; k < tot; k++) {
-                if (course.attendance[i].historyOfAttendance[k].status == "Present") {
-                  present++;
+                for (let k = 0; k < tot; k++) {
+                  if (
+                    course.attendance[i].historyOfAttendance[k].status ==
+                    "Present"
+                  ) {
+                    present++;
+                  }
                 }
+                percent = (present / (tot + 1)) * 100;
               }
-              percent = (present / (tot + 1)) * 100;
             }
-          }
 
-          for (var i = 0; i < len; i++) {
-            if (course.attendance[i].registrationNumber === regNo) {
-              let obj = {
-                registrationNumber: regNo,
-                attendancePercentage: percent,
-                historyOfAttendance: course.attendance[i].historyOfAttendance,
-              };
-              obj.historyOfAttendance.push({
-                attendanceDate: date,
-                status: "Absent",
-              });
+            for (var i = 0; i < len; i++) {
+              if (course.attendance[i].registrationNumber === regNo) {
+                let obj = {
+                  registrationNumber: regNo,
+                  attendancePercentage: percent,
+                  historyOfAttendance: course.attendance[i].historyOfAttendance,
+                };
+                obj.historyOfAttendance.push({
+                  attendanceDate: date,
+                  status: "Absent",
+                });
 
-              // deleting before pushing
-              Course.findOneAndUpdate({
-                  courseID: cID
-                }, {
-                  $pull: {
-                    attendance: {
-                      registrationNumber: regNo
+                // deleting before pushing
+                Course.findOneAndUpdate(
+                  {
+                    courseID: cID,
+                  },
+                  {
+                    $pull: {
+                      attendance: {
+                        registrationNumber: regNo,
+                      },
+                    },
+                  },
+                  async function (err) {
+                    if (err) {
+                      res.send(err);
+                    } else {
+                      Course.findOneAndUpdate(
+                        {
+                          courseID: cID,
+                        },
+                        {
+                          $push: {
+                            attendance: obj,
+                          },
+                        },
+                        function (err, doc) {
+                          if (err) {
+                            res.send(err);
+                          } else {
+                            // res.send(doc);
+                          }
+                        }
+                      );
                     }
                   }
-                },
-                async function (err) {
-                  if (err) {
-                    res.send(err);
-                  } else {
-                    Course.findOneAndUpdate({
-                        courseID: cID
-                      }, {
-                        $push: {
-                          attendance: obj,
-                        },
-                      },
-                      function (err, doc) {
-                        if (err) {
-                          res.send(err);
-                        } else {
-                          // res.send(doc);
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-              // Adding updated object
+                );
+                // Adding updated object
+              }
             }
           }
+          res.send("Updated student, marked as Absent");
         }
-        res.send("Updated student, marked as Absent");
       }
-    });
+    );
   }
 });
 
@@ -605,11 +654,13 @@ app.post("/newCourse", function (req, res) {
 
   let newCourseID = uuidv4();
 
-  Course.find({
-      facultyID: facID
-    }, {
+  Course.find(
+    {
+      facultyID: facID,
+    },
+    {
       courseName: 1,
-      slot: 1
+      slot: 1,
     },
 
     async (err, checkCourse) => {
@@ -656,9 +707,11 @@ app.post("/newCourse", function (req, res) {
             courseName: cName,
           };
 
-          Faculty.findOneAndUpdate({
-              facultyID: facID
-            }, {
+          Faculty.findOneAndUpdate(
+            {
+              facultyID: facID,
+            },
+            {
               $push: {
                 coursesHandled: facultyHandled,
               },
@@ -679,7 +732,6 @@ app.post("/newCourse", function (req, res) {
   );
 });
 
-
 // To add a student to a course
 app.post("/addStudent", function (req, res) {
   regNo = req.body.regNo;
@@ -687,58 +739,76 @@ app.post("/addStudent", function (req, res) {
   cName = req.body.courseName;
   slot = req.body.slot;
 
-  Student.findOne({
-      registrationNumber: regNo
-    }, {
-      coursesTaken: 1
+  let object = new Student({
+    registrationNumber: regNo,
+  });
+
+  Student.findOne(
+    {
+      registrationNumber: regNo,
+    },
+    {
+      coursesTaken: 1,
     },
     async function (err, coursesList) {
       if (err) {
         res.send(err);
       } else {
-        let duplicate = false;
-        let len = coursesList.coursesTaken.length;
-        for (let i = 0; i < len; i++) {
-          if (coursesList.coursesTaken[i].courseID === cID) {
-            duplicate = true;
-            break;
+        if (courseList == null) {
+          res.sendStatus(404);
+        } else {
+          let duplicate = false;
+          let len = coursesList.coursesTaken.length;
+          for (let i = 0; i < len; i++) {
+            if (coursesList.coursesTaken[i].courseID === cID) {
+              duplicate = true;
+              break;
+            }
+          }
+
+          if (duplicate) {
+            res.send("Inserting duplicate course, rejected request");
+          } else {
+            let obj = {
+              courseID: cID,
+              courseName: cName,
+              slot: slot,
+            };
+
+            Student.findOneAndUpdate(
+              {
+                registrationNumber: regNo,
+              },
+              {
+                $push: {
+                  coursesTaken: obj,
+                },
+              },
+              function (err) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  res.send("Student added course successfullly.");
+                }
+              }
+            );
           }
         }
-
-        if (duplicate) {
-          res.send("Inserting duplicate course, rejected request");
-        } else {
-          let obj = {
-            courseID: cID,
-            courseName: cName,
-            slot: slot
-          };
-
-          Student.findOneAndUpdate({
-            registrationNumber: regNo
-          }, {
-            $push: {
-              coursesTaken: obj
-            }
-          }, function (err) {
-            if (err) {
-              res.send(err);
-            } else {
-              res.send("Student added course successfullly.");
-            }
-          });
-        }
       }
-    });
+    }
+  );
 });
 
 // ** DOUBT ROUTES ** //
 
 // GET route that sends the doubt object
 app.get("/doubts", function (req, res) {
-  const doubts = Doubts.find({}, {
-    doubts: 1
-  });
+  const doubts = Doubts.find(
+    {},
+    {
+      doubts: 1,
+    }
+  );
 
   res.send(doubts);
 });
@@ -748,10 +818,12 @@ app.get("/doubts", function (req, res) {
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
   let doubtsList = [];
-  Doubts.findOne({
-      facultyID: req.body.facID
-    }, {
-      doubts: 1
+  Doubts.findOne(
+    {
+      facultyID: req.body.facID,
+    },
+    {
+      doubts: 1,
     },
     async function (err, markedDoubts) {
       if (err) {
@@ -763,12 +835,14 @@ app.post("/doubts", function (req, res) {
           var len = markedDoubts.doubts.length;
           var i;
           for (i = 0; i < len; i++) {
-            await Course.findOne({
-                courseID: markedDoubts.doubts[i].courseID
-              }, {
+            await Course.findOne(
+              {
+                courseID: markedDoubts.doubts[i].courseID,
+              },
+              {
                 courseID: 1,
                 courseName: 1,
-                slot: 1
+                slot: 1,
               },
               function (err, cnas) {
                 //cnas = course name and slot
@@ -793,7 +867,6 @@ app.post("/doubts", function (req, res) {
     }
   );
 });
-
 
 //Server port for Heroku
 //Server port for localhost:3000
