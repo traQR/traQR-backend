@@ -476,7 +476,7 @@ app.post("/faculty/attendance", function (req, res) {
             for (let j = 0; j < len1; j++) {
               if (
                 studentAttendance.attendance[i].historyOfAttendance[j]
-                  .attendanceDate === date
+                  .attendanceDate.getTime() === date.getTime()
               ) {
                 let obj = {
                   registrationNumber:
@@ -490,7 +490,7 @@ app.post("/faculty/attendance", function (req, res) {
             }
           }
           res.send({
-            attendanceList,
+            attendanceList
           });
         }
       }
