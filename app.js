@@ -115,7 +115,7 @@ const Faculty = mongoose.model("Faculty", facultySchema);
 
 const Course = mongoose.model("Course", courseSchema);
 
-const Doubt = mongoose.model("Doubts", doubtSchema);
+const Doubt = mongoose.model("Doubt", doubtSchema);
 
 // ***  ROUTES *** //
 
@@ -896,10 +896,11 @@ app.get("/doubts", function (req, res) {
 // doubts based on the facultyID
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
-  let doubtsList = [];
+  let facID = req.body.facID;
+  doubtsList = [];
   Doubt.findOne(
     {
-      facultyID: req.body.facID,
+      facultyID: facID,
     },
     {
       doubts: 1,
@@ -928,14 +929,16 @@ app.post("/doubts", function (req, res) {
                 if (err) {
                   res.send(err);
                 } else {
-                  var index = 0;
-                  let obj = {
-                    courseID: cnas.courseID,
-                    courseName: cnas.courseName,
-                    doubt: markedDoubts.doubts[index].doubt,
-                  };
-                  doubtsList.push(obj);
-                  index++;
+                  if (cnas == null) {
+                    res.sendStatus(404);
+                  } else {
+                    let obj = {
+                      courseID: cnas.courseID,
+                      courseName: cnas.courseName,
+                      doubt: markedDoubts.doubts[i].doubt,
+                    };
+                    doubtsList.push(obj);
+                  }
                 }
               }
             );
@@ -956,14 +959,14 @@ app.post("/addDoubt", function (req, res) {
     courseID: cID,
     doubt: doubt,
   };
-  Doubts.findAndUpdateOne(
+  Doubt.findOneAndUpdate(
     { facultyID: facID },
     { $push: { doubts: obj } },
     function (err, result) {
       if (err) {
         res.send(err);
       } else {
-        res.send("Successfully updated ", result);
+        res.send("Updated Successfully");
       }
     }
   );
