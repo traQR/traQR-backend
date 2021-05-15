@@ -84,7 +84,7 @@ const facultySchema = new mongoose.Schema({
   facultyName: String,
   coursesHandled: [{
     courseID: String,
-    courseName: String,
+    courseName: String
   }, ],
 });
 
