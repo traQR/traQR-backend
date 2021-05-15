@@ -64,7 +64,7 @@ const courseSchema = new mongoose.Schema({
       attendancePercentage: Number,
       historyOfAttendance: [
         {
-          attendanceDate: String,
+          attendanceDate: Date,
           status: String,
         },
       ],
@@ -136,6 +136,16 @@ app.post("/newUser", function (req, res) {
     res.send("Successfully inserted Faculty user");
   }
 });
+
+//Get student details route regNo
+app.post("/getDetails", function(req, res){
+  let { isStudent, regNo, facID } = req.body;
+  if(isStudent){
+    Student.findOne()
+  }
+})
+
+//Get faculty details route from facID
 
 // Retrieveing fields from Student object
 app.post("/courses", function (req, res) {
@@ -415,7 +425,7 @@ app.post("/attendance-stats", function (req, res) {
 app.post("/faculty/attendance", function (req, res) {
   //TODO: Have to provide studentName to frontend (NOT DONE)
   var cID = req.body.courseID;
-  var date = req.body.date; //"DD-MM-YY"
+  var date = new Date(req.body.date); //"DD-MM-YY"
   let attendanceList = [];
   Course.findOne(
     {
@@ -466,7 +476,7 @@ app.post("/markAttendance", function (req, res) {
   // var facID = req.body.facID; // This is in da QR
   var regNo = req.body.regNo;
   var cID = req.body.courseID;
-  var date = req.body.date;
+  var date = new Date(req.body.date);
   var isPresent = req.body.status; // This is bool bitch
 
   if (isPresent) {
