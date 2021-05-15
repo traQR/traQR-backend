@@ -138,27 +138,32 @@ app.post("/newUser", function (req, res) {
 });
 
 //getDetails get details of student or faculty based on isStudent
-app.post("/getDetails", function(req, res){
+app.post("/getDetails", function (req, res) {
   let { isStudent, regNo, facID } = req.body;
-  if(isStudent){
-    Student.findOne({registrationNumber: regNo},{registrationNumber: 1, studentName: 1}, function(err, details){
-        if(err){
+  if (isStudent) {
+    Student.findOne(
+      { registrationNumber: regNo },
+      { registrationNumber: 1, studentName: 1 },
+      function (err, details) {
+        if (err) {
           res.send(err);
-        }
-        else{
+        } else {
           res.send(details);
         }
-    });
-  }
-  else{
-    Faculty.findOne({facultyID: facID},{facultyID: 1, facultyName: 1}, function(err, details){
-      if(err){
-        res.send(err);
       }
-      else{
-        res.send(details);
+    );
+  } else {
+    Faculty.findOne(
+      { facultyID: facID },
+      { facultyID: 1, facultyName: 1 },
+      function (err, details) {
+        if (err) {
+          res.send(err);
+        } else {
+          res.send(details);
+        }
       }
-  });
+    );
   }
 });
 
