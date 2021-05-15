@@ -821,11 +821,34 @@ app.post("/addStudent", function (req, res) {
               function (err) {
                 if (err) {
                   res.send(err);
-                } else {
-                  res.send("Student added course successfullly.");
                 }
               }
             );
+
+            Course.findOne({courseID: cID}, {attendance: 1}, function(err, attendanceList){
+              if(err){
+                res.send(err);
+              }
+              else{
+                if(attendanceList == null){
+                  res.sendStatus(404);
+                }
+                else{
+                  let obj = {
+                    registrationNumber: regNo,
+                    attendancePercentage: 0,
+                    historyOfAttendance: []
+                  }
+                  Course.findOneAndUpdate({courseID: cID}, {$push: {attendance: obj}}, function(err, response){
+                    if(err){
+                      res.send(err);
+                    }
+                  });
+                }
+              }
+            })
+
+            res.send("Student has been added successfully");
           }
         }
       }
