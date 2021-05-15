@@ -50,6 +50,7 @@ mongoose.connect(
 
 mongoose.set("useFindAndModify", false);
 
+//Course collection
 const courseSchema = new mongoose.Schema({
   courseID: {
     type: String,
@@ -72,6 +73,7 @@ const courseSchema = new mongoose.Schema({
   ],
 });
 
+//Student collection
 const studentSchema = new mongoose.Schema({
   registrationNumber: String,
   studentName: String,
@@ -84,6 +86,7 @@ const studentSchema = new mongoose.Schema({
   ],
 });
 
+//Faculty collection
 const facultySchema = new mongoose.Schema({
   facultyID: String,
   facultyName: String,
@@ -95,6 +98,7 @@ const facultySchema = new mongoose.Schema({
   ],
 });
 
+//Doubt collection
 const doubtSchema = new mongoose.Schema({
   facultyID: String,
   doubts: [
@@ -111,7 +115,7 @@ const Faculty = mongoose.model("Faculty", facultySchema);
 
 const Course = mongoose.model("Course", courseSchema);
 
-const Doubts = mongoose.model("Doubts", doubtSchema);
+const Doubt = mongoose.model("Doubts", doubtSchema);
 
 // ***  ROUTES *** //
 
@@ -124,7 +128,9 @@ app.post("/newUser", function (req, res) {
       studentName: studentName,
       coursesTaken: [],
     });
+
     user.save();
+
     res.send("Successfully inserted Student user");
   } else {
     const user = new Faculty({
@@ -132,7 +138,16 @@ app.post("/newUser", function (req, res) {
       facultyName: facultyName,
       coursesHandled: [],
     });
+
     user.save();
+
+    let newDoubt = new Doubt({
+      facultyID: facID,
+      doubts: [],
+    });
+
+    newDoubt.save();
+
     res.send("Successfully inserted Faculty user");
   }
 });
@@ -148,9 +163,9 @@ app.post("/getDetails", function (req, res) {
         if (err) {
           res.send(err);
         } else {
-          if(details == null){
+          if (details == null) {
             res.sendStatus(404);
-          }else{
+          } else {
             res.send(details);
           }
         }
@@ -164,9 +179,9 @@ app.post("/getDetails", function (req, res) {
         if (err) {
           res.send(err);
         } else {
-          if(details == null){
+          if (details == null) {
             res.sendStatus(404);
-          }else{
+          } else {
             res.send(details);
           }
         }
@@ -475,8 +490,9 @@ app.post("/faculty/attendance", function (req, res) {
               studentAttendance.attendance[i].historyOfAttendance.length;
             for (let j = 0; j < len1; j++) {
               if (
-                studentAttendance.attendance[i].historyOfAttendance[j]
-                  .attendanceDate.getTime() === date.getTime()
+                studentAttendance.attendance[i].historyOfAttendance[
+                  j
+                ].attendanceDate.getTime() === date.getTime()
               ) {
                 let obj = {
                   registrationNumber:
@@ -490,7 +506,7 @@ app.post("/faculty/attendance", function (req, res) {
             }
           }
           res.send({
-            attendanceList
+            attendanceList,
           });
         }
       }
@@ -825,28 +841,34 @@ app.post("/addStudent", function (req, res) {
               }
             );
 
-            Course.findOne({courseID: cID}, {attendance: 1}, function(err, attendanceList){
-              if(err){
-                res.send(err);
-              }
-              else{
-                if(attendanceList == null){
-                  res.sendStatus(404);
-                }
-                else{
-                  let obj = {
-                    registrationNumber: regNo,
-                    attendancePercentage: 0,
-                    historyOfAttendance: []
+            Course.findOne(
+              { courseID: cID },
+              { attendance: 1 },
+              function (err, attendanceList) {
+                if (err) {
+                  res.send(err);
+                } else {
+                  if (attendanceList == null) {
+                    res.sendStatus(404);
+                  } else {
+                    let obj = {
+                      registrationNumber: regNo,
+                      attendancePercentage: 0,
+                      historyOfAttendance: [],
+                    };
+                    Course.findOneAndUpdate(
+                      { courseID: cID },
+                      { $push: { attendance: obj } },
+                      function (err, response) {
+                        if (err) {
+                          res.send(err);
+                        }
+                      }
+                    );
                   }
-                  Course.findOneAndUpdate({courseID: cID}, {$push: {attendance: obj}}, function(err, response){
-                    if(err){
-                      res.send(err);
-                    }
-                  });
                 }
               }
-            })
+            );
 
             res.send("Student has been added successfully");
           }
@@ -860,7 +882,7 @@ app.post("/addStudent", function (req, res) {
 
 // GET route that sends the doubt object
 app.get("/doubts", function (req, res) {
-  const doubts = Doubts.find(
+  const doubts = Doubt.find(
     {},
     {
       doubts: 1,
@@ -875,7 +897,7 @@ app.get("/doubts", function (req, res) {
 app.post("/doubts", function (req, res) {
   // facID should be substituted for the corresponding front-end variable
   let doubtsList = [];
-  Doubts.findOne(
+  Doubt.findOne(
     {
       facultyID: req.body.facID,
     },
@@ -920,6 +942,28 @@ app.post("/doubts", function (req, res) {
           }
           res.send(doubtsList);
         }
+      }
+    }
+  );
+});
+
+app.post("/addDoubt", function (req, res) {
+  var facID = req.body.facID;
+  var cID = req.body.courseID;
+  var doubt = req.body.doubt;
+
+  let obj = {
+    courseID: cID,
+    doubt: doubt,
+  };
+  Doubts.findAndUpdateOne(
+    { facultyID: facID },
+    { $push: { doubts: obj } },
+    function (err, result) {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("Successfully updated ", result);
       }
     }
   );
