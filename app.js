@@ -739,10 +739,6 @@ app.post("/addStudent", function (req, res) {
   cName = req.body.courseName;
   slot = req.body.slot;
 
-  let object = new Student({
-    registrationNumber: regNo,
-  });
-
   Student.findOne(
     {
       registrationNumber: regNo,
@@ -754,7 +750,7 @@ app.post("/addStudent", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        if (courseList == null) {
+        if (coursesList == null) {
           res.sendStatus(404);
         } else {
           let duplicate = false;
