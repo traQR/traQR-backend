@@ -903,7 +903,7 @@ app.post("/doubts", function (req, res) {
       facultyID: facID,
     },
     {
-      doubts: 1,
+      doubts: 1
     },
     async function (err, markedDoubts) {
       if (err) {
@@ -933,6 +933,7 @@ app.post("/doubts", function (req, res) {
                     res.sendStatus(404);
                   } else {
                     let obj = {
+                      doubtID: markedDoubts.doubts[i]._id,
                       courseID: cnas.courseID,
                       courseName: cnas.courseName,
                       doubt: markedDoubts.doubts[i].doubt,
@@ -962,6 +963,26 @@ app.post("/addDoubt", function (req, res) {
   Doubt.findOneAndUpdate(
     { facultyID: facID },
     { $push: { doubts: obj } },
+    function (err, result) {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("Updated Successfully");
+      }
+    }
+  );
+});
+
+app.post("/deleteDoubt", function (req, res) {
+  var facID = req.body.facID;
+  var id = req.body.doubtID;
+
+  Doubt.findOneAndUpdate(
+    { facultyID: facID },
+    { $pull: { doubts: {
+
+        _id: id
+    }} },
     function (err, result) {
       if (err) {
         res.send(err);
