@@ -922,7 +922,6 @@ app.post("/doubts", function (req, res) {
           var len = markedDoubts.doubts.length;
           var i;
           for (i = 0; i < len; i++) {
-            console.log(i);
             await Course.findOne(
               {
                 courseID: markedDoubts.doubts[i].courseID
@@ -947,7 +946,6 @@ app.post("/doubts", function (req, res) {
                       doubt: markedDoubts.doubts[i].doubt,
                     };
                     doubtsList.push(obj);
-                    console.log(obj);
                   }
                 }
               }
