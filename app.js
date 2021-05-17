@@ -915,9 +915,10 @@ app.post("/doubts", function (req, res) {
           var len = markedDoubts.doubts.length;
           var i;
           for (i = 0; i < len; i++) {
+            var courseID1 = markedDoubts.doubts[i].courseID;
             await Course.findOne(
               {
-                courseID: markedDoubts.doubts[i].courseID,
+                courseID: courseID1
               },
               {
                 courseID: 1,
