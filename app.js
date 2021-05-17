@@ -117,6 +117,13 @@ const Course = mongoose.model("Course", courseSchema);
 
 const Doubt = mongoose.model("Doubt", doubtSchema);
 
+//* Sleep function *//
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}   
+
 // ***  ROUTES *** //
 
 // To create new user
@@ -915,10 +922,10 @@ app.post("/doubts", function (req, res) {
           var len = markedDoubts.doubts.length;
           var i;
           for (i = 0; i < len; i++) {
-            var courseID1 = markedDoubts.doubts[i].courseID;
+            console.log(i);
             await Course.findOne(
               {
-                courseID: courseID1
+                courseID: markedDoubts.doubts[i].courseID
               },
               {
                 courseID: 1,
@@ -940,10 +947,12 @@ app.post("/doubts", function (req, res) {
                       doubt: markedDoubts.doubts[i].doubt,
                     };
                     doubtsList.push(obj);
+                    console.log(obj);
                   }
                 }
               }
             );
+            await sleep(100);
           }
           res.send(doubtsList);
         }
