@@ -152,7 +152,6 @@ app.post("/newUser", function (req, res) {
   }
 });
 
-
 //getDetails get details of student or faculty based on isStudent
 app.post("/getDetails", function (req, res) {
   let { isStudent, regNo, facID } = req.body;
@@ -191,7 +190,6 @@ app.post("/getDetails", function (req, res) {
   }
 });
 
-
 // Retrieveing fields from Student object
 app.post("/courses", function (req, res) {
   var regNo = req.body.regNo;
@@ -215,7 +213,6 @@ app.post("/courses", function (req, res) {
     }
   );
 });
-
 
 // Retrieving fields from course object
 app.post("/courses/courseID", function (req, res) {
@@ -273,7 +270,6 @@ app.post("/courses/courseID", function (req, res) {
   );
 });
 
-
 // Checks the array of objects in attendance for the requested regNo
 // and stores those exact details in attendanceList which is then sent.
 app.post("/courses/courseID/attendance", function (req, res) {
@@ -307,7 +303,6 @@ app.post("/courses/courseID/attendance", function (req, res) {
     }
   );
 });
-
 
 // Sends courseName, slot and attendancePercent based on registration number
 app.post("/attendance", function (req, res) {
@@ -390,7 +385,6 @@ app.post("/attendance", function (req, res) {
   );
 });
 
-
 // Send teacherCourses
 app.post("/faculty", function (req, res) {
   Faculty.findOne(
@@ -413,7 +407,6 @@ app.post("/faculty", function (req, res) {
     }
   );
 });
-
 
 // Returns attendance statistics of the students based on particular courseID
 app.post("/attendance-stats", function (req, res) {
@@ -471,7 +464,6 @@ app.post("/attendance-stats", function (req, res) {
   );
 });
 
-
 // Returns studentName and attendanceStatus for a particular course on a particular date
 app.post("/faculty/attendance", function (req, res) {
   //TODO: Have to provide studentName to frontend (NOT DONE)
@@ -521,7 +513,6 @@ app.post("/faculty/attendance", function (req, res) {
     }
   );
 });
-
 
 // Updates the database based on whether the student's scan
 // was valid or invalid
@@ -709,7 +700,6 @@ app.post("/markAttendance", function (req, res) {
   }
 });
 
-
 // To add a new course to the database
 app.post("/newCourse", function (req, res) {
   let facID = req.body.facultyID;
@@ -795,7 +785,6 @@ app.post("/newCourse", function (req, res) {
     }
   );
 });
-
 
 // To add a student to a course
 app.post("/addStudent", function (req, res) {
@@ -891,7 +880,6 @@ app.post("/addStudent", function (req, res) {
 
 // ** DOUBT ROUTES ** //
 
-
 // GET route that sends the doubt object
 app.get("/doubts", function (req, res) {
   const doubts = Doubt.find(
@@ -904,7 +892,6 @@ app.get("/doubts", function (req, res) {
   res.send(doubts);
 });
 
-
 // POST route that sends courseID, courseName and the marked
 // doubts based on the facultyID
 app.post("/doubts", function (req, res) {
@@ -916,7 +903,7 @@ app.post("/doubts", function (req, res) {
       facultyID: facID,
     },
     {
-      doubts: 1
+      doubts: 1,
     },
     async function (err, markedDoubts) {
       if (err) {
@@ -993,10 +980,13 @@ app.post("/deleteDoubt", function (req, res) {
 
   Doubt.findOneAndUpdate(
     { facultyID: facID },
-    { $pull: { doubts: {
-
-        _id: id
-    }} },
+    {
+      $pull: {
+        doubts: {
+          _id: id,
+        },
+      },
+    },
     function (err, result) {
       if (err) {
         res.send(err);
