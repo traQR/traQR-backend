@@ -612,8 +612,8 @@ app.post("/markAttendance", function (req, res) {
                 // Adding updated object
               }
             }
+            res.send("Updated student, marked as Present");
           }
-          res.send("Updated student, marked as Present");
         }
       }
     );
@@ -699,8 +699,8 @@ app.post("/markAttendance", function (req, res) {
                 // Adding updated object
               }
             }
+            res.send("Updated student, marked as Absent");
           }
-          res.send("Updated student, marked as Absent");
         }
       }
     );
