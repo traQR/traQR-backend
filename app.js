@@ -796,18 +796,26 @@ app.post("/newCourse", function (req, res) {
 app.post("/checkCourse", function (req, res) {
   let cID = req.body.cID;
   let regNo = req.body.regNo;
+
   Course.findOne(
     { courseID: cID },
     { attendance: 1 },
-    function (err, attendanceList) {
+    async function (err, attendanceList) {
       if (err) {
         res.send(err);
       } else {
-        let len = attendanceList.attendance;
+        let len = attendanceList.attendance.length;
         let check = false;
         for (let i = 0; i < len; i++) {
           if (attendanceList.attendance[i].registrationNumber === regNo) {
+            check = true;
+            break;
           }
+        }
+        if(check == true){
+          res.send({isNew: false});
+        }else{
+          res.send({isNew: true});
         }
       }
     }
