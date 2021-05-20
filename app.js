@@ -122,7 +122,7 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
-}   
+}
 
 // ***  ROUTES *** //
 
@@ -793,12 +793,31 @@ app.post("/newCourse", function (req, res) {
   );
 });
 
+app.post("/checkCourse", function (req, res) {
+  let cID = req.body.cID;
+  let regNo = req.body.regNo;
+  Course.findOne(
+    { courseID: cID },
+    { attendance: 1 },
+    function (err, attendanceList) {
+      if (err) {
+        res.send(err);
+      } else {
+        let len = attendanceList.attendance;
+        let check = false;
+        for (let i = 0; i < len; i++) {
+          if (attendanceList.attendance[i].registrationNumber === regNo) {
+          }
+        }
+      }
+    }
+  );
+});
+
 // To add a student to a course
 app.post("/addStudent", function (req, res) {
   regNo = req.body.regNo;
   cID = req.body.courseID;
-  cName = req.body.courseName;
-  slot = req.body.slot;
 
   Student.findOne(
     {
@@ -826,24 +845,39 @@ app.post("/addStudent", function (req, res) {
           if (duplicate) {
             res.send("Inserting duplicate course, rejected request");
           } else {
-            let obj = {
-              courseID: cID,
-              courseName: cName,
-              slot: slot,
-            };
+           
 
-            Student.findOneAndUpdate(
-              {
-                registrationNumber: regNo,
-              },
-              {
-                $push: {
-                  coursesTaken: obj,
-                },
-              },
-              function (err) {
+            Course.findOne(
+              { courseID: cID },
+              { courseID: 1, courseName: 1, slot: 1 },
+              function (err, courseDetails) {
                 if (err) {
                   res.send(err);
+                } else {
+                  if (courseDetails == null) {
+                    res.sendStatus(404);
+                  } else {
+                    let obj = {
+                      courseID: cID,
+                      courseName: courseDetails.courseName,
+                      slot: courseDetails.slot,
+                    };
+                    Student.findOneAndUpdate(
+                      {
+                        registrationNumber: regNo,
+                      },
+                      {
+                        $push: {
+                          coursesTaken: obj,
+                        },
+                      },
+                      function (err) {
+                        if (err) {
+                          res.send(err);
+                        }
+                      }
+                    );
+                  }
                 }
               }
             );
@@ -924,7 +958,7 @@ app.post("/doubts", function (req, res) {
           for (i = 0; i < len; i++) {
             await Course.findOne(
               {
-                courseID: markedDoubts.doubts[i].courseID
+                courseID: markedDoubts.doubts[i].courseID,
               },
               {
                 courseID: 1,
