@@ -804,18 +804,22 @@ app.post("/checkCourse", function (req, res) {
       if (err) {
         res.send(err);
       } else {
-        let len = attendanceList.attendance.length;
-        let check = false;
-        for (let i = 0; i < len; i++) {
-          if (attendanceList.attendance[i].registrationNumber === regNo) {
-            check = true;
-            break;
+        if (attendanceList == null) {
+          res.sendStatus(404);
+        } else {
+          let len = attendanceList.attendance.length;
+          let check = false;
+          for (let i = 0; i < len; i++) {
+            if (attendanceList.attendance[i].registrationNumber === regNo) {
+              check = true;
+              break;
+            }
           }
-        }
-        if(check == true){
-          res.send({isNew: false});
-        }else{
-          res.send({isNew: true});
+          if (check == true) {
+            res.send({ isNew: false });
+          } else {
+            res.send({ isNew: true });
+          }
         }
       }
     }
@@ -853,8 +857,6 @@ app.post("/addStudent", function (req, res) {
           if (duplicate) {
             res.send("Inserting duplicate course, rejected request");
           } else {
-           
-
             Course.findOne(
               { courseID: cID },
               { courseID: 1, courseName: 1, slot: 1 },
