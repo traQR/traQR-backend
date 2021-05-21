@@ -794,7 +794,7 @@ app.post("/newCourse", function (req, res) {
 });
 
 app.post("/checkCourse", function (req, res) {
-  let cID = req.body.cID;
+  let cID = req.body.courseID;
   let regNo = req.body.regNo;
 
   Course.findOne(
