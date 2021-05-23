@@ -495,11 +495,11 @@ app.post("/faculty/attendance", function (req, res) {
           for (let i = 0; i < len; i++) {
             let len1 =
               studentAttendance.attendance[i].historyOfAttendance.length;
-            for (let j = 0; j < len1; j++) {
+              for (let j = 0; j < len1; j++) {
               if (
                 studentAttendance.attendance[i].historyOfAttendance[
                   j
-                ].attendanceDate.getTime() === date.getTime()
+                ].attendanceDate.getDate() === date.getDate()
               ) {
                 let obj = {
                   registrationNumber:
