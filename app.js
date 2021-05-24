@@ -382,6 +382,7 @@ app.post("/attendance", function (req, res) {
                 }
               }
             );
+            await sleep(100);
           }
           res.send({
             percentageList,
