@@ -41,7 +41,7 @@ app.get("/traqr", function (req, res) {
 const mongoose = require("mongoose");
 
 mongoose.connect(
-  "mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/traQR",
+  "mongodb+srv://TraQR-admin:WTTTQR-access@traqrdb.db1i1.mongodb.net/test-traqrDB",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
