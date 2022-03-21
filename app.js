@@ -1052,10 +1052,10 @@ app.post("/deleteDoubt", function (req, res) {
 
 //Server port for Heroku
 //Server port for localhost:3000
-let port = process.env.PORT;
-if (port == null || port == "") {
-  port = 3000;
-}
+let port = process.env.PORT || 3000;
+//if (port == null || port == "") {
+//  port = 3000;
+//}
 
 app.listen(port, function (req, res) {
   console.log("Server started on", port);
